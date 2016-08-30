@@ -1,8 +1,8 @@
 {
   "resolution": "main",
   "tree": {
-    "src": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/37e93445986a98b9be57680de1e102ca384e0531/pixi.js/pixi.js.d.ts",
-    "raw": "registry:dt/pixi.js#3.0.9+20160705114540",
-    "typings": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/37e93445986a98b9be57680de1e102ca384e0531/pixi.js/pixi.js.d.ts"
+    "src": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/cc19e43b3d7eb0f5b598fd3ec17cc0edf1e6cf22/pixi.js/pixi.js.d.ts",
+    "raw": "registry:dt/pixi.js#3.0.9+20160825215559",
+    "typings": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/cc19e43b3d7eb0f5b598fd3ec17cc0edf1e6cf22/pixi.js/pixi.js.d.ts"
   }
 }
