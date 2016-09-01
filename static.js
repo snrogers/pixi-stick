@@ -1,6 +1,6 @@
 var static = require('node-static');
 
-var fileServer = new static.Server('./test', {
+var fileServer = new static.Server('./docs', {
     cache: 0
 });
 

@@ -1,0 +1,22 @@
+<head>
+    <!--<link rel="stylesheet" href="example.css" />-->
+    <link rel="stylesheet" href="example.css" />
+
+    <style>
+        /*canvas:-webkit-full-screen {
+            width: 100%;
+            height: 100%;
+        }*/
+    </style>
+</head>
+
+<body>
+    <div id="gameDiv"></div>
+    <button onclick="document.querySelector('#gameDiv').children[0].webkitRequestFullScreen()">FullScreen</button>
+
+    <script src="pixi.js"></script>
+    <script src="dist/pixi-stick.js"></script>
+    <script src="example-stickArea.js"></script>
+</body>
+
+</html>

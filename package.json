@@ -21,8 +21,7 @@
         "copyToTest": "node ./bin/copyToTest.js",
         "watch": "watch \"npm run buildWatch\" src",
         "start": "static test -a 127.0.0.1:80",
-        "toc": "markdown-toc -i README.md",
-        "copyGh": "node ./bin/copyToGhPages.js",
+        "toc": "markdown-toc -i README.md"
     },
     "dependencies": {},
     "devDependencies": {
@@ -44,7 +43,7 @@
         "mocha": "^2.2.5",
         "node-static": "^0.7.7",
         "phantomjs": "yoannmoinet/phantomjs#nick-2",
-        "pixi.js": "^4.0.0",
+        "pixi.js": "^3.0.11",
         "source-map-loader": "^0.1.5",
         "ts-loader": "^0.8.2",
         "typescript": "^1.8.10",
@@ -55,7 +54,7 @@
         "webpack": "^1.13.1"
     },
     "peerDependencies": {
-        "pixi.js": "^4.0.0"
+        "pixi.js": "^3.0.11"
     },
     "author": "",
     "license": "ISC",

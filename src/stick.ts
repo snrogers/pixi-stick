@@ -1,5 +1,8 @@
 import { magnitude, sign, unitVector } from './util';
 
+/******************/
+/*** Interfaces ***/ 
+/******************/
 export interface IStickEvent {
     position: PIXI.Point
 }
@@ -14,14 +17,20 @@ export interface IStickOptions {
     wellRadius?: number;
 }
 
-const mouseEvents = {
-    onTouchStart: 'mousedown',
-    onTouchMove: 'mousemove',
-    onTouchEnd: 'mouseup',
-    onTouchEndOutside: 'mouseupoutside'
+
+
+function initDefaultWell(){
+
+}
+
+function initDefaultGraphics(){
+
 }
 
 
+/***********************/
+/*** Event Listeners ***/ 
+/***********************/
 function dragListenerXY(event: PIXI.interaction.InteractionEvent) {
     if (event.data.identifier != this._touchIdentifier) return;
 
@@ -104,6 +113,10 @@ function dragListenerY(event: PIXI.interaction.InteractionEvent) {
     }
 }
 
+
+/*****************/
+/*** The Stick ***/ 
+/*****************/
 export class Stick extends PIXI.Container {
 
     private _options: IStickOptions = {
@@ -170,7 +183,7 @@ export class Stick extends PIXI.Container {
             this._well.width = this._options.wellRadius * 2;
             this._well.height = this._options.wellRadius * 2;
 
-            // TODO: Anchor only works on Sprite, not Container. Should add a nubOffset property to deal with this
+            // TODO: Anchor only works on Sprite, not Container. Should add a wellAnchor property to deal with this
             this._well.anchor.x = 0.5;
             this._well.anchor.y = 0.5;
 
@@ -179,40 +192,36 @@ export class Stick extends PIXI.Container {
             switch (this._options.type) {
                 case 'xy':
                     (<PIXI.Graphics>this._well).beginFill(0xffffff, 0.25);
-                    (<PIXI.Graphics>this._well).drawShape(new PIXI.Circle(0, 0, this._options.wellRadius));
+                    (<PIXI.Graphics>this._well).drawCircle(0, 0, this._options.wellRadius);
                     (<PIXI.Graphics>this._well).endFill();
                     break;
                 case 'x':
                     (<PIXI.Graphics>this._well).beginFill(0xffffff, 0.25);
-                    (<PIXI.Graphics>this._well).drawShape(new PIXI.RoundedRectangle(
+                    (<PIXI.Graphics>this._well).drawRoundedRect(
                         -this._options.wellRadius - this._options.wellRadius * this._options.nubSize,
                         -(this._options.wellRadius * this._options.nubSize),
                         this._options.wellRadius * 2 + this._options.wellRadius * 2 * this._options.nubSize,
                         this._options.wellRadius * 2 * this._options.nubSize
                         ,
                         this._options.wellRadius * this._options.nubSize
-                    ));
+                    );
                     (<PIXI.Graphics>this._well).endFill();
                     break;
                 case 'y':
                     (<PIXI.Graphics>this._well).beginFill(0xffffff, 0.25);
-                    (<PIXI.Graphics>this._well).drawShape(new PIXI.RoundedRectangle(
+                    (<PIXI.Graphics>this._well).drawRoundedRect(
                         -(this._options.wellRadius * this._options.nubSize),
                         -this._options.wellRadius - this._options.wellRadius * this._options.nubSize,
                         this._options.wellRadius * 2 * this._options.nubSize,
                         this._options.wellRadius * 2 + this._options.wellRadius * 2 * this._options.nubSize,
                         this._options.wellRadius * this._options.nubSize
-                    ));
+                    );
                     (<PIXI.Graphics>this._well).endFill();
                     break;
                 default:
                     throw new Error(this._options.type + ' is not a valid stick type');
             }
         }
-
-        this.addChild(this._well);
-
-
 
 
         // Init Nub
@@ -221,16 +230,39 @@ export class Stick extends PIXI.Container {
             this._nub.width = this._options.wellRadius * this._options.nubSize * 2;
             this._nub.height = this._options.wellRadius * this._options.nubSize * 2;
 
-            // TODO: Anchor only works on Sprite, not Container. Should add a nubOffset property to deal with this
+            // TODO: Anchor only works on Sprite, not Container. Should add a nubAnchor property to deal with this
             this._nub.anchor.x = 0.5;
             this._nub.anchor.y = 0.5;
         } else {
             this._nub = new PIXI.Graphics();
             (<PIXI.Graphics>this._nub).beginFill(0xffffff, 0.25);
-            (<PIXI.Graphics>this._nub).drawShape(new PIXI.Circle(0, 0, this._options.wellRadius * this._options.nubSize));
+            (<PIXI.Graphics>this._nub).drawCircle(0, 0, this._options.wellRadius * this._options.nubSize);
             (<PIXI.Graphics>this._nub).endFill();
         }
+
+        // Add children
+        this.addChild(this._well);
         this.addChild(this._nub);
+
+
+        // // TODO: Remove this if it doesn't fix flickering background issue'
+        // if (!this._options.nub && !this._options.well) {
+        //     this.renderWebGL = (renderer: PIXI.WebGLRenderer) => {
+        //         // this._nub.clear();
+        //         // this._well.clear();
+        //         super.renderWebGL(renderer)
+        //     };
+        //     this.renderCanvas = (renderer: PIXI.CanvasRenderer) => {
+        //         // this._nub.clear();
+        //         // this._well.clear();
+        //         super.renderCanvas(renderer)
+        //     };
+        // } else if (!this._options.nub && !this._options.well) {
+        //     throw new Error('unimplemented');
+        // } else if (!this._options.nub && !this._options.well) {
+        //     throw new Error('unimplemented');
+        // }
+
     }
 
     private _initMouseEvents() {
@@ -283,11 +315,15 @@ export class Stick extends PIXI.Container {
         }
 
         this.on('touchend', (event: PIXI.interaction.InteractionEvent) => {
+            this._touchIdentifier = undefined;
             this.isTouched = false;
             this.resetPosition();
         });
         this.on('touchendoutside', (event: PIXI.interaction.InteractionEvent) => {
-            this.isTouched = false;
+            if (event.data.identifier === this._touchIdentifier) {
+                this.isTouched = false;
+                this._touchIdentifier = undefined;
+            }
             this.resetPosition();
         });
     }

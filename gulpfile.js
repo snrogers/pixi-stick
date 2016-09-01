@@ -33,7 +33,8 @@ gulp.task("webpack-dev", function(cb) {
     });
 });
 
-
+// TODO: There has got to be a way to avoid having definitions put 
+// in ./src rather than delete them afterwards
 gulp.task('compile-dev', ['webpack-dev'], function(cb) {
     rimraf('./src/*.d.ts', {}, function() {
         cb()

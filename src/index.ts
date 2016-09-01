@@ -1,5 +1,5 @@
 // import * as PIXI from 'pixi.js';
-export { IVec2, magnitude, unitVector } from './util';
+export { magnitude, unitVector } from './util';
 
 // export const DOMMouseHandlers = {
 //     'mousedown': 
