@@ -1,63 +1,85 @@
 import { magnitude, sign, unitVector } from './util';
 
 /******************/
-/*** Interfaces ***/ 
+/*** Interfaces ***/
 /******************/
-export interface IStickEvent {
-    position: PIXI.Point
-}
 
 export interface IStickOptions {
     [key: string]: any;
+
+    touch?: boolean;
+    mouse?: boolean;
+
     type?: 'x' | 'y' | 'xy';
+
+    deadZone?: number; // TODO: Implement deadZone
+
     nub?: PIXI.Container;
     nubSize?: number;
-    pollable?: boolean;
+
     well?: PIXI.Container;
     wellRadius?: number;
 }
 
-
-
-function initDefaultWell(){
-
+interface IEventNames {
+    onTouchStart: string;
+    onTouchMove: string;
+    onTouchEnd: string;
+    onTouchEndOutside: string;
 }
 
-function initDefaultGraphics(){
 
+
+/*******************/
+/*** Event Names ***/
+/*******************/
+const events: { [eventType: string]: IEventNames } = {
+    mouse: {
+        onTouchStart: 'mousedown',
+        onTouchMove: 'mousemove',
+        onTouchEnd: 'mouseup',
+        onTouchEndOutside: 'mouseupoutside'
+    },
+    touch: {
+        onTouchStart: 'touchstart',
+        onTouchMove: 'touchmove',
+        onTouchEnd: 'touchend',
+        onTouchEndOutside: 'touchendoutside'
+    }
 }
+
 
 
 /***********************/
-/*** Event Listeners ***/ 
+/*** Event Listeners ***/
 /***********************/
 function dragListenerXY(event: PIXI.interaction.InteractionEvent) {
     if (event.data.identifier != this._touchIdentifier) return;
 
-    if (!this.isTouched) {
+    if (this.isTouched) {
+        this._axes = event.data.getLocalPosition(this, this._axes);
+
+        if (magnitude(this._axes) > this._options.wellRadius) {
+            unitVector(this._axes, this._axes);
+            this._nub.x = this._axes.x * this._options.wellRadius;
+            this._nub.y = this._axes.y * this._options.wellRadius;
+        } else {
+            this._nub.x = this._axes.x;
+            this._nub.y = this._axes.y;
+            this._axes.x /= this._options.wellRadius;
+            this._axes.y /= this._options.wellRadius;
+        }
+    } else {
         this._axes.x = 0;
         this._axes.y = 0;
-        return;
     }
 
-    window.touchData = this._touchData;
-    window.eventData = event.data;
-
-    event.data.getLocalPosition(this, this._axes);
-
-    if (magnitude(this._axes) > this._options.wellRadius) {
-        unitVector(this._axes, this._axes);
-        this._nub.x = this._axes.x * this._options.wellRadius;
-        this._nub.y = this._axes.y * this._options.wellRadius;
-    } else {
-        this._nub.x = this._axes.x;
-        this._nub.y = this._axes.y;
-        this._axes.x /= this._options.wellRadius;
-        this._axes.y /= this._options.wellRadius;
-    }
 
     if (this.onTouchMove) {
-        this.onTouchMove({ position: this._axes }); // GARBAGE
+        this.onTouchMove(this._axes);
+    }
+    if (this.onAxisChange) {
+        this.onAxisChange(this._axes);
     }
 }
 
@@ -109,48 +131,67 @@ function dragListenerY(event: PIXI.interaction.InteractionEvent) {
     }
 
     if (this.onTouchMove) {
-        this.onTouchMove({ position: this._axes }); // GARBAGE
+        this.onTouchMove(this._axes);
     }
 }
 
-
 /*****************/
-/*** The Stick ***/ 
+/*** The Stick ***/
 /*****************/
 export class Stick extends PIXI.Container {
 
     private _options: IStickOptions = {
+        touch: true,
+        mouse: true,
+
+        type: 'xy',
+
         deadZone: 0, // TODO: Implement deadZone
+
         nub: null,
         nubSize: 0.3,
         well: null,
         wellRadius: 50,
-        type: 'xy'   // TODO: Implement type
     };
 
     private _well: PIXI.Container;
     private _nub: PIXI.Container;
 
-    private _mouseDragListener: (event: PIXI.interaction.InteractionEvent) => void;
+    private _dragListener: (event: PIXI.interaction.InteractionEvent) => void;
 
+    /** _axes is used as temporary storage for coordinates while they are being transformed.
+     *  Without _axes, we would either need to either:
+     * 
+     *  1) Perform the same event.data.getLocalPosition() call multiple times per event (esp. dragListeners)
+     *  2) Accumulate garbage by creating temporary PIXI.Point instances  (esp. dragListeners)
+     *  3) Assign the localPosition back to the event.data, risking issues where we might accidentally perform
+     *     the global -> local transformation multiple times
+     */
     private _axes: PIXI.Point;
     private _touchIdentifier: number;
 
     public isTouched: boolean = false;
 
-    // Events
+
+
+    /**************/
+    /*** Events ***/
+    /**************/
 
     /** Fires when the stick is touched */
-    public onTouchStart: (event: IStickEvent) => void;
+    public onTouchStart: (axes: PIXI.Point) => void;
 
     /** Fires when the touch moves */
-    public onTouchMove: (event: IStickEvent) => void;
+    public onTouchMove: (axes: PIXI.Point) => void;
 
     /** Fires when the stick is no longer touched */
-    public onTouchEnd: (event: IStickEvent) => void;
+    public onTouchEnd: (axes: PIXI.Point) => void;
 
     /** Fires when the stick is tapped (Configurable. See IOptions) */
-    public onTap: (event: IStickEvent) => void;
+    public onTap: (axes: PIXI.Point) => void;
+
+    /** Fires ANY TIME any axis changes */
+    public onAxisChange: (axes: PIXI.Point) => void;
 
     constructor(x: number, y: number, options?: IStickOptions) {
         super();
@@ -171,8 +212,8 @@ export class Stick extends PIXI.Container {
         this.interactive = true;
 
         this._initGraphics();
-        this._initMouseEvents();
-        this._initTouchEvents();
+        if (this._options.mouse) this._initEvents('mouse');
+        if (this._options.touch) this._initEvents('touch');
     }
 
     private _initGraphics() {
@@ -265,71 +306,53 @@ export class Stick extends PIXI.Container {
 
     }
 
-    private _initMouseEvents() {
-        this.on('mousedown', (event: PIXI.interaction.InteractionEvent) => {
-            this.isTouched = true;
-        });
+    private _initEvents(mouseOrTouch: string) {
+        console.debug('initializing touch events');
+        console.log(events[mouseOrTouch]);
 
-        switch (this._options.type) {
-            case 'xy':
-                this.on('mousemove', dragListenerXY.bind(this));
-                break;
-            case 'x':
-                this.on('mousemove', dragListenerX.bind(this));
-                break;
-            case 'y':
-                this.on('mousemove', dragListenerY.bind(this));
-                break;
-            default:
-                throw new Error(this._options.type + ' is not a valid stick type');
-        }
-
-        this.on('mouseup', (event: PIXI.interaction.InteractionEvent) => {
-            this.isTouched = false;
-            this.resetPosition();
-        });
-        this.on('mouseupoutside', (event: PIXI.interaction.InteractionEvent) => {
-            this.isTouched = false;
-            this.resetPosition();
-        });
-    }
-
-    private _initTouchEvents() {
-        this.on('touchstart', (event: PIXI.interaction.InteractionEvent) => {
+        // Touch Start
+        this.on(events[mouseOrTouch].onTouchStart, (event: PIXI.interaction.InteractionEvent) => {
+            console.debug('touch start');
             this._touchIdentifier = event.data.identifier;
             this.isTouched = true;
+            if (this.onTouchStart) this.onTouchStart(this._axes);
+            this._dragListener(event);
         });
 
+        // Touch Drag
         switch (this._options.type) {
             case 'xy':
-                this.on('touchmove', dragListenerXY.bind(this));
+                this._dragListener = dragListenerXY.bind(this);
                 break;
             case 'x':
-                this.on('touchmove', dragListenerX.bind(this));
+                this._dragListener = dragListenerX.bind(this);
                 break;
             case 'y':
-                this.on('touchmove', dragListenerY.bind(this));
+                this._dragListener = dragListenerY.bind(this);
                 break;
             default:
                 throw new Error(this._options.type + ' is not a valid stick type');
         }
+        this.on(events[mouseOrTouch].onTouchMove, this._dragListener); // TODO: Remove wrapper
 
-        this.on('touchend', (event: PIXI.interaction.InteractionEvent) => {
+
+        // Touch End
+        this.on(events[mouseOrTouch].onTouchEnd, (event: PIXI.interaction.InteractionEvent) => {
+            if (event.data.identifier != this._touchIdentifier) return;
+
             this._touchIdentifier = undefined;
             this.isTouched = false;
             this.resetPosition();
+            this.onAxisChange(this._axes);
         });
-        this.on('touchendoutside', (event: PIXI.interaction.InteractionEvent) => {
-            if (event.data.identifier === this._touchIdentifier) {
-                this.isTouched = false;
-                this._touchIdentifier = undefined;
-            }
-            this.resetPosition();
-        });
-    }
+        this.on(events[mouseOrTouch].onTouchEndOutside, (event: PIXI.interaction.InteractionEvent) => {
+            if (event.data.identifier != this._touchIdentifier) return;
 
-    public poll(): PIXI.Point {
-        return this._axes;
+            this._touchIdentifier = undefined;
+            this.isTouched = false;
+            this.resetPosition();
+            this.onAxisChange(this._axes);
+        });
     }
 
     public resetPosition() {

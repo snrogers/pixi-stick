@@ -16,19 +16,12 @@ export interface IStickAreaOptions {
 
 function generateColor() {
     let color = 0;
-
-    // Red = 0; Green = 1; Blue = 2;
     let primary = Math.floor(Math.random() * 3);
-
-    console.log('primary is ' + primary);
 
     for (let i = 0; i < 3; i++) {
         color = color << 8;
-
         color += 155 + Math.floor(Math.random() * 100);
     }
-
-    console.log('color is ' + color);
 
     return color;
 }
@@ -56,23 +49,15 @@ export class StickArea extends PIXI.Graphics {
 
         this._axes = new PIXI.Point(0, 0);
 
-
-
         this.x = 0;
         this.y = 0;
         this.interactive = true;
-
-        // init Graphics
-        // TODO: Maybe check performance for clear graphics?
-
-        // generate a color;
 
 
         this.beginFill(generateColor(), this._options.debug ? 0.7 : 0);
         this.drawShape(new PIXI.Rectangle(x, y, width, height));
         this.endFill();
 
-        // init other
         this._initMouseEvents();
         this._initTouchEvents();
 
@@ -80,7 +65,6 @@ export class StickArea extends PIXI.Graphics {
     }
 
     private _initGraphics() {
-
     }
 
     private _initMouseEvents() {
@@ -134,9 +118,5 @@ export class StickArea extends PIXI.Graphics {
         this._stick.x = position.x;
         this._stick.y = position.y;
         this._stick.isTouched = true;
-    }
-
-    public poll(): PIXI.Point {
-        return this._stick.poll();
     }
 }

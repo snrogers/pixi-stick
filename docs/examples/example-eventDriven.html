@@ -11,15 +11,19 @@
 </head>
 
 <body>
+    <h1>Event-Driven</h1>
+
     <div id="gameDiv"></div>
+
     <button onclick="document.querySelector('#gameDiv').children[0].webkitRequestFullScreen()">FullScreen</button>
     <button onclick="stage.swapChildren(leftSquare, leftStick)">Swap leftSquare and leftStick</button>
     <button onclick="stage.swapChildren(rightSquare, rightStick)">Swap rightSquare and rightStick</button>
 
     <script src="fullscreen-function.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.0.0/pixi.min.js"></script>
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/3.0.11/pixi.min.js"></script>-->
     <script src="../dist/pixi-stick.js"></script>
-    <script src="example-stick.js"></script>
+    <script src="example-eventDriven.js"></script>
 </body>
 
 </html>

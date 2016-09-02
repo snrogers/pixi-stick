@@ -1,8 +1,4 @@
-let canvas;
-let canvasPrev;
-
-var playerSpeed = 10;
-
+var squareSpeed = 10;
 
 document.addEventListener('webkitfullscreenchange', function() {
     canvasPrev = canvas;
@@ -25,48 +21,55 @@ document.addEventListener('webkitfullscreenchange', function() {
     }
 });
 
-
-
 // STICK AREA EXAMPLE
 
 // create a renderer instance.
 var renderer = PIXI.autoDetectRenderer(400, 300);
+renderer.backgroundColor = 0x8888ff;
+
 // add the renderer view element to the DOM
 document.querySelector('#gameDiv').appendChild(renderer.view);
 
 // create an Container
 var stage = new PIXI.Container();
 
-// Colored background
-var background = new PIXI.Graphics();
-background.beginFill(0x8888ff, 1);
-background.drawShape(new PIXI.Rectangle(0, 0, 400, 300));
-background.endFill();
-
 // create a square to move around
-var player = new PIXI.Graphics();
-player.x = 30;
-player.y = 30;
-player.beginFill(0x55ff55);
-player.drawShape(new PIXI.Rectangle(0, 0, 20, 20));
-player.endFill();
+var square = new PIXI.Graphics();
+square.x = 30;
+square.y = 30;
+square.xVel = 0;
+square.yVel = 0;
 
-window.player = player;
+square.beginFill(0x55ff55);
+square.drawShape(new PIXI.Rectangle(0, 0, 20, 20));
+square.endFill();
+
+window.square = square;
 
 // Define a stick for the user to control;
-var stickArea = new PixiStick.StickArea(0, 0, 200, 300, {
+var leftStickArea = new PixiStick.StickArea(0, 0, 200, 300, {
     debug: true
 });
 
-var stickArea2 = new PixiStick.StickArea(200, 0, 200, 300, {
+var rightStickArea = new PixiStick.StickArea(200, 0, 200, 300, {
     debug: true
 });
 
-// stage.addChild(background);
-stage.addChild(player);
+stage.addChild(square);
+stage.addChild(leftStickArea);
+stage.addChild(rightStickArea);
 
-stage.addChild(stickArea);
-stage.addChild(stickArea2);
+// Handle leftStickArea input
+leftStickArea.onAxisChange = function(axes) {
+    square.xVel = axes.x * squareSpeed;
+    square.yVel = axes.y * squareSpeed;
+}
+
+// Handle rightStickArea input
+rightStickArea.onAxisChange = function(axes) {
+    square.xVel = axes.x * squareSpeed;
+    square.yVel = axes.y * squareSpeed;
+}
 
 // Render the scene
 requestAnimationFrame(animate);
@@ -74,14 +77,14 @@ requestAnimationFrame(animate);
 function animate() {
     requestAnimationFrame(animate);
 
-    player.x += stickArea.poll().x * playerSpeed;
-    player.y += stickArea.poll().y * playerSpeed;
+    square.x += square.xVel * squareSpeed;
+    square.y += square.yVel * squareSpeed;
 
-    if (player.x > 380) player.x = 380;
-    if (player.x < 0) player.x = 0;
+    if (square.x > 380) square.x = 380;
+    if (square.x < 0) square.x = 0;
 
-    if (player.y > 280) player.y = 280;
-    if (player.y < 0) player.y = 0;
+    if (square.y > 280) square.y = 280;
+    if (square.y < 0) square.y = 0;
 
 
     // render the stage   
