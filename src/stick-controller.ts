@@ -1,28 +1,10 @@
 import { magnitude, sign, unitVector } from './util';
-
-import Joystick from './joystick';
-import IStickOptions from './istickoptions';
-
 import events from './events';
+import IStickOptions from './IStickOptions';
+import Joystick from './joystick';
 
 import debug from './debug';
 
-export interface IStickAreaOptions extends IStickOptions {
-    [key: string]: any;
-    debug?: boolean;
-}
-
-function generateColor() {
-    let color = 0;
-    let primary = Math.floor(Math.random() * 3);
-
-    for (let i = 0; i < 3; i++) {
-        color = color << 8;
-        color += 155 + Math.floor(Math.random() * 100);
-    }
-
-    return color;
-}
 
 /***********************/
 /*** Event Listeners ***/
@@ -36,7 +18,7 @@ function dragListenerXY(event: PIXI.interaction.InteractionEvent) {
      */
 
     if (this.isTouched) {
-        this._joystick.toLocal(event.data.global, null, this._axes);
+        this.toLocal(event.data.global, null, this._axes);
 
         if (magnitude(this._axes) > this._options.wellRadius) {
             unitVector(this._axes, this._axes);
@@ -115,17 +97,16 @@ function dragListenerY(event: PIXI.interaction.InteractionEvent) {
     }
 }
 
+/****************************/
+/*** The Stick Controller ***/
+/****************************/
+export class StickController extends PIXI.Container {
 
+    public id: string = debug.id(this, 'Stick');
 
-export class StickArea extends PIXI.Graphics {
-
-    public id: string = debug.id(this, 'StickArea');
-
-    private _options: IStickAreaOptions = {
-        debug: false,
-
-        mouse: true,
+    private _options: IStickOptions = {
         touch: true,
+        mouse: true,
 
         axes: 'xy',
         deadZone: 0, // TODO: Implement deadZone
@@ -133,7 +114,7 @@ export class StickArea extends PIXI.Graphics {
         nubSize: 0.3,
         well: null,
         wellRadius: 50,
-    }
+    };
 
     private _joystick: Joystick;
     private _dragListener: (event: PIXI.interaction.InteractionEvent) => void;
@@ -176,8 +157,13 @@ export class StickArea extends PIXI.Graphics {
     /*******************/
     /*** Constructor ***/
     /*******************/
-    constructor(x: number, y: number, width: number, height: number, options: IStickAreaOptions) {
+    constructor(x: number, y: number, options?: IStickOptions) {
         super();
+
+        this._axes = new PIXI.Point(0, 0);
+
+        this.x = x;
+        this.y = y;
 
         if (options) {
             for (let prop in options) {
@@ -187,32 +173,29 @@ export class StickArea extends PIXI.Graphics {
             }
         }
 
-        this._axes = new PIXI.Point(0, 0);
+        // Set dimensions
+        if (this._options.type === 'static') {
+            this.width = this._options.wellRadius * 2;
+            this.height = this._options.wellRadius * 2;
+        }
 
-        this.x = x;
-        this.y = y;
         this.interactive = true;
 
-        this._initGraphics(width, height);
+        this._joystick = new Joystick(0, 0, this._options); // ERR: x and y should be computed based on stick type, i.e. static/semi/dynamic
+        this.addChild(this._joystick);
+
         if (this._options.mouse) this._initEvents('mouse');
         if (this._options.touch) this._initEvents('touch');
-
-        this._joystick = new Joystick(0, 0, this._options);
-    }
-
-    private _initGraphics(width: number, height: number) {
-        this.beginFill(generateColor(), this._options.debug ? 0.7 : 0);
-        this.drawRect(0, 0, width, height);
-        this.endFill();
     }
 
     private _initEvents(mouseOrTouch: string) {
+        debug.log('initializing touch events', this);
+        console.log(events[mouseOrTouch]);
+
         // Touch Start
         this.on(events[mouseOrTouch].onTouchStart, (event: PIXI.interaction.InteractionEvent) => {
-            debug.log('Touch Start', this);
-
+            debug.log('stick touch start', this);
             this.identifier = event.data.identifier;
-            this._spawnStick(event.data.getLocalPosition(this));
             this.isTouched = true;
             if (this.onTouchStart) this.onTouchStart(this._axes);
             this._dragListener(event);
@@ -243,43 +226,32 @@ export class StickArea extends PIXI.Graphics {
         // Touch End
         this.on(events[mouseOrTouch].onTouchEnd, (event: PIXI.interaction.InteractionEvent) => {
             debug.log('Touch End', this);
-            debug.log('    this id: ' + this.identifier, this);
-            debug.log('    touch id: ' + event.data.identifier, this);
             if (event.data.identifier !== this.identifier) return;
-            debug.log('Touch End: identifier matches', this);
+            debug.log('Touch End: identifier Matches [' + this.identifier + ' === ' + event.data.identifier + ']', this);
 
             this.identifier = undefined;
             this.isTouched = false;
             this.resetPosition();
             this.onAxisChange(this._axes);
-            this._despawnStick();
 
             event.stopPropagation();
         });
         this.on(events[mouseOrTouch].onTouchEndOutside, (event: PIXI.interaction.InteractionEvent) => {
             debug.log('Touch End Outside', this);
-            if (event.data.identifier != this.identifier) return;
-            debug.log('Touch End Outside: identifier Matches', this);
-
-            debug.log('Touch End Outside', this);
-            debug.log('    this id: ' + this.identifier, this);
-            debug.log('    touch id: ' + event.data.identifier, this);
-            if (event.data.identifier !== this.identifier) return;
-            debug.log('Touch End Outside: identifier matches', this);
+            if (event.data.identifier !== this.identifier) {
+                debug.log('Touch End Outside: identifier DOES NOT MATCH [' + this.identifier + ' !== ' + event.data.identifier + ']', this);
+                console.log(event);
+                return;
+            }
+            debug.log('Touch End Outside: identifier Matches [' + this.identifier + ' === ' + event.data.identifier + ']', this);
 
             this.identifier = undefined;
             this.isTouched = false;
             this.resetPosition();
             this.onAxisChange(this._axes);
-            this._despawnStick();
 
             event.stopPropagation();
         });
-    }
-
-    private _despawnStick() {
-        debug.log('despawning stick', this);
-        this.removeChild(this._joystick);
     }
 
     public resetPosition() {
@@ -289,14 +261,6 @@ export class StickArea extends PIXI.Graphics {
         this._axes.x = 0;
         this._axes.y = 0;
     }
-
-    private _spawnStick(position: PIXI.Point) {
-        debug.log('spawning stick at [' + position.x + ',' + position.y + ']', this);
-        this.addChild(this._joystick);
-        this._joystick.x = position.x;
-        this._joystick.y = position.y;
-        this._joystick.isTouched = true;
-    }
 }
 
-export default StickArea;
+export default StickController;

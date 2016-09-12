@@ -33,18 +33,28 @@ document.querySelector('#gameDiv').appendChild(renderer.view);
 // create an Container
 var stage = new PIXI.Container();
 
-// create a square to move around
-var square = new PIXI.Graphics();
-square.x = 30;
-square.y = 30;
-square.xVel = 0;
-square.yVel = 0;
 
-square.beginFill(0x55ff55);
-square.drawShape(new PIXI.Rectangle(0, 0, 20, 20));
-square.endFill();
+// create a couple of squares to move around
+var leftSquare = new PIXI.Graphics();
+leftSquare.x = 30;
+leftSquare.y = 30;
+leftSquare.xVel = 0;
+leftSquare.yVel = 0;
 
-window.square = square;
+leftSquare.beginFill(0x55ff55);
+leftSquare.drawShape(new PIXI.Rectangle(0, 0, 20, 20));
+leftSquare.endFill();
+
+var rightSquare = new PIXI.Graphics();
+rightSquare.x = 30;
+rightSquare.y = 30;
+rightSquare.xVel = 0;
+rightSquare.yVel = 0;
+
+rightSquare.beginFill(0xff5555);
+rightSquare.drawShape(new PIXI.Rectangle(0, 0, 20, 20));
+rightSquare.endFill();
+
 
 // Define a stick for the user to control;
 var leftStickArea = new PixiStick.StickArea(0, 0, 200, 300, {
@@ -55,20 +65,21 @@ var rightStickArea = new PixiStick.StickArea(200, 0, 200, 300, {
     debug: true
 });
 
-stage.addChild(square);
+stage.addChild(leftSquare);
+stage.addChild(rightSquare);
 stage.addChild(leftStickArea);
 stage.addChild(rightStickArea);
 
 // Handle leftStickArea input
 leftStickArea.onAxisChange = function(axes) {
-    square.xVel = axes.x * squareSpeed;
-    square.yVel = axes.y * squareSpeed;
+    leftSquare.xVel = axes.x * squareSpeed;
+    leftSquare.yVel = axes.y * squareSpeed;
 }
 
 // Handle rightStickArea input
 rightStickArea.onAxisChange = function(axes) {
-    square.xVel = axes.x * squareSpeed;
-    square.yVel = axes.y * squareSpeed;
+    rightSquare.xVel = axes.x * squareSpeed;
+    rightSquare.yVel = axes.y * squareSpeed;
 }
 
 // Render the scene
@@ -77,14 +88,23 @@ requestAnimationFrame(animate);
 function animate() {
     requestAnimationFrame(animate);
 
-    square.x += square.xVel * squareSpeed;
-    square.y += square.yVel * squareSpeed;
+    // Handle LeftSquare
+    leftSquare.x += leftSquare.xVel;
+    leftSquare.y += leftSquare.yVel;
+    if (leftSquare.x > 380) leftSquare.x = 380;
+    if (leftSquare.x < 0) leftSquare.x = 0;
 
-    if (square.x > 380) square.x = 380;
-    if (square.x < 0) square.x = 0;
+    if (leftSquare.y > 280) leftSquare.y = 280;
+    if (leftSquare.y < 0) leftSquare.y = 0;
 
-    if (square.y > 280) square.y = 280;
-    if (square.y < 0) square.y = 0;
+    // Handle RightSquare
+    rightSquare.x += rightSquare.xVel;
+    rightSquare.y += rightSquare.yVel;
+    if (rightSquare.x > 380) rightSquare.x = 380;
+    if (rightSquare.x < 0) rightSquare.x = 0;
+
+    if (rightSquare.y > 280) rightSquare.y = 280;
+    if (rightSquare.y < 0) rightSquare.y = 0;
 
 
     // render the stage   

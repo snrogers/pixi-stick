@@ -3,23 +3,22 @@ var playerSpeed = 10;
 // STATIC STICK example
 // create a renderer instance.
 var renderer = PIXI.autoDetectRenderer(400, 300);
+renderer.backgroundColor = 0x8888ff;
+
 // add the renderer view element to the DOM
 document.querySelector('#gameDiv').appendChild(renderer.view);
 
 // create a stage
 var stage = new PIXI.Container();
 
-// create a background
-var background = new PIXI.Graphics();
-background.beginFill(0x8888ff, 1);
-background.drawRect(0, 0, 400, 300);
-background.endFill();
-
 // create a square to move around with the left stick
 var leftSquare = new PIXI.Graphics();
 leftSquare.x = 30;
 leftSquare.y = 30;
-leftSquare.beginFill(0x55ff55);
+leftSquare.xVel = 0;
+leftSquare.yVel = 0;
+
+leftSquare.beginFill(0x55ff55, 1);
 leftSquare.drawRect(0, 0, 20, 20);
 leftSquare.endFill();
 
@@ -27,7 +26,10 @@ leftSquare.endFill();
 var rightSquare = new PIXI.Graphics();
 rightSquare.x = 30;
 rightSquare.y = 30;
-rightSquare.beginFill(0xff5555);
+rightSquare.xVel = 0;
+rightSquare.yVel = 0;
+
+rightSquare.beginFill(0xff5555, 1);
 rightSquare.drawRect(0, 0, 20, 20);
 rightSquare.endFill();
 
@@ -36,28 +38,46 @@ rightSquare.endFill();
 var leftStick = new PixiStick.Stick(75, 225, {
     type: 'xy',
     nub: new PIXI.Sprite.fromImage('img/nub.png'),
-    well: new PIXI.Sprite.fromImage('img/well.png')
+    well: new PIXI.Sprite.fromImage('img/well.png'),
+    opacity: 0.3
 });
 
 var rightStick = new PixiStick.Stick(325, 225, {
     type: 'xy',
     nub: new PIXI.Sprite.fromImage('img/nub.png'),
-    well: new PIXI.Sprite.fromImage('img/well.png')
+    well: new PIXI.Sprite.fromImage('img/well.png'),
+    opacity: 0.3
 });
 
-stage.addChild(background);
-stage.addChild(leftStick);
-stage.addChild(rightStick);
+
 stage.addChild(leftSquare);
 stage.addChild(rightSquare);
+stage.addChild(leftStick);
+stage.addChild(rightStick);
+
+
+// Handle leftStick input
+leftStick.onAxisChange = function(axes) {
+    leftSquare.xVel = axes.x * playerSpeed;
+    leftSquare.yVel = axes.y * playerSpeed;
+}
+
+// Handle rightStick input
+rightStick.onAxisChange = function(axes) {
+    rightSquare.xVel = axes.x * playerSpeed;
+    rightSquare.yVel = axes.y * playerSpeed;
+}
+
 
 // Render the scene
 requestAnimationFrame(animate);
 
 function animate() {
-    // Wire up the leftStick and leftSquare
-    leftSquare.x += leftStick.poll().x * playerSpeed;
-    leftSquare.y += leftStick.poll().y * playerSpeed;
+    requestAnimationFrame(animate);
+
+    // Compute new leftSquare position
+    leftSquare.x += leftSquare.xVel;
+    leftSquare.y += leftSquare.yVel;
 
     // Lock the leftSquare into the viewable area
     if (leftSquare.x > 380) leftSquare.x = 380;
@@ -65,9 +85,9 @@ function animate() {
     if (leftSquare.y > 280) leftSquare.y = 280;
     if (leftSquare.y < 0) leftSquare.y = 0;
 
-    // Wire up the rightSquare and rightStick
-    rightSquare.x += rightStick.poll().x * playerSpeed;
-    rightSquare.y += rightStick.poll().y * playerSpeed;
+    // Compute new rightSquare position
+    rightSquare.x += rightSquare.xVel;
+    rightSquare.y += rightSquare.yVel;
 
     // Lock the rightSquare into the viewable area
     if (rightSquare.x > 380) rightSquare.x = 380;
@@ -78,6 +98,4 @@ function animate() {
 
     // render the stage   
     renderer.render(stage);
-
-    requestAnimationFrame(animate);
 }
