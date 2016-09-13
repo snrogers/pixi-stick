@@ -4,13 +4,13 @@ var playerSpeed = 10;
 // create a renderer instance.
 var renderer = PIXI.autoDetectRenderer(400, 300);
 renderer.backgroundColor = 0x8888ff;
-var interactionManager = PIXI.interaction.InteractionManager(renderer);
 
 // add the renderer view element to the DOM
 document.querySelector('#gameDiv').appendChild(renderer.view);
 
 // create a stage
 var stage = new PIXI.Container();
+stage.interactive = true;
 
 // create a square to move around with the left stick
 var leftSquare = new PIXI.Graphics();

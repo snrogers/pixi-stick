@@ -1,5 +1,4 @@
 import { magnitude, sign, unitVector } from './util';
-import events from './events';
 import IStickOptions from './istickoptions';
 
 import debug from './debug';

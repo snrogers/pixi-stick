@@ -18,7 +18,7 @@ function dragListenerXY(event: PIXI.interaction.InteractionEvent) {
      */
 
     if (this.isTouched) {
-        this.toLocal(event.data.global, null, this._axes);
+        this._joystick.toLocal(event.data.global, null, this._axes);
 
         if (magnitude(this._axes) > this._options.wellRadius) {
             unitVector(this._axes, this._axes);
@@ -195,12 +195,15 @@ export class StickController extends PIXI.Container {
         // Touch Start
         this.on(events[mouseOrTouch].onTouchStart, (event: PIXI.interaction.InteractionEvent) => {
             debug.log('stick touch start', this);
+            console.log('==== the event ====');
+            console.log(event);
+            console.log('===================');
             this.identifier = event.data.identifier;
             this.isTouched = true;
             if (this.onTouchStart) this.onTouchStart(this._axes);
-            this._dragListener(event);
+            // this._dragListener(event);
 
-            event.stopPropagation();
+            // event.stopPropagation();
         });
 
         // Touch Drag
@@ -217,15 +220,15 @@ export class StickController extends PIXI.Container {
             default:
                 throw new Error(this._options.type + ' is not a valid stick type');
         }
-        this.on(events[mouseOrTouch].onTouchMove, function (event: PIXI.interaction.InteractionData) {
-            // debug.log('Touch Move', this);
-            this._dragListener(event);
-        }); // TODO: Remove debug wrapper
+        this.on(events[mouseOrTouch].onTouchMove, this._dragListener); // TODO: Remove debug wrapper
 
 
         // Touch End
         this.on(events[mouseOrTouch].onTouchEnd, (event: PIXI.interaction.InteractionEvent) => {
             debug.log('Touch End', this);
+            console.log('==== the event ====');
+            console.log(event);
+            console.log('===================');
             if (event.data.identifier !== this.identifier) return;
             debug.log('Touch End: identifier Matches [' + this.identifier + ' === ' + event.data.identifier + ']', this);
 
@@ -234,13 +237,16 @@ export class StickController extends PIXI.Container {
             this.resetPosition();
             this.onAxisChange(this._axes);
 
-            event.stopPropagation();
+            // event.stopPropagation();
         });
         this.on(events[mouseOrTouch].onTouchEndOutside, (event: PIXI.interaction.InteractionEvent) => {
             debug.log('Touch End Outside', this);
+            console.log('==== the event ====');
+            console.log(event);
+            console.log('===================');
+
             if (event.data.identifier !== this.identifier) {
                 debug.log('Touch End Outside: identifier DOES NOT MATCH [' + this.identifier + ' !== ' + event.data.identifier + ']', this);
-                console.log(event);
                 return;
             }
             debug.log('Touch End Outside: identifier Matches [' + this.identifier + ' === ' + event.data.identifier + ']', this);
@@ -250,7 +256,7 @@ export class StickController extends PIXI.Container {
             this.resetPosition();
             this.onAxisChange(this._axes);
 
-            event.stopPropagation();
+            // event.stopPropagation();
         });
     }
 
