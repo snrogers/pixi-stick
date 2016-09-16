@@ -9,7 +9,7 @@ renderer.backgroundColor = 0x8888ff;
 document.querySelector('#gameDiv').appendChild(renderer.view);
 
 // create a stage
-var stage = new PIXI.Container();
+var stage = new PixiStick.ControllableStage();
 
 // create a square to move around with the left stick
 var leftSquare = new PIXI.Graphics();
@@ -52,8 +52,8 @@ var rightStick = new PixiStick.Stick(325, 225, {
 
 stage.addChild(leftSquare);
 stage.addChild(rightSquare);
-stage.addChild(leftStick);
-stage.addChild(rightStick);
+stage.addController(leftStick);
+stage.addController(rightStick);
 
 
 // Handle leftStick input

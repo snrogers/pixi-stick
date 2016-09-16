@@ -1,11 +1,13 @@
-export interface IEventNames {
+export interface IEventCategory {
+    [key: string]: string;
+    
     onTouchStart: string;
     onTouchMove: string;
     onTouchEnd: string;
     onTouchEndOutside: string;
 }
 
-export const events: { [eventType: string]: IEventNames } = {
+export const events: { [eventType: string]: IEventCategory } = {
     mouse: {
         onTouchStart: 'mousedown',
         onTouchMove: 'mousemove',

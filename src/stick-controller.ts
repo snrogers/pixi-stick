@@ -1,7 +1,12 @@
 import { magnitude, sign, unitVector } from './util';
-import events from './events';
-import IStickOptions from './IStickOptions';
+
 import Joystick from './joystick';
+import ControllableStage from './controllable-stage';
+
+import IStickOptions from './IStickOptions';
+import IController from './IController';
+
+import events from './events';
 
 import debug from './debug';
 
@@ -46,63 +51,90 @@ function dragListenerXY(event: PIXI.interaction.InteractionEvent) {
 }
 
 function dragListenerX(event: PIXI.interaction.InteractionEvent) {
-    if (!this.isTouched) {
+    if (event.data.identifier != this.identifier) return;
+
+    /**
+     * TODO: Investigate the possibility of eliminating this._axes.
+     * Using this.toLocal might have eliminated the need for this._axes.
+     */
+
+    if (this.isTouched) {
+        this._joystick.toLocal(event.data.global, null, this._axes);
+
+        if (Math.abs(this._axes.x) > this._options.wellRadius) {
+            this._axes.x = sign(this._axes.x);
+            this._axes.y = 0;
+            this._joystick.nub.x = this._axes.x * this._options.wellRadius;
+            this._joystick.nub.y = 0;
+        } else {
+            this._joystick.nub.x = this._axes.x;
+            this._joystick.nub.y = 0;
+            this._axes.x /= this._options.wellRadius;
+            this._axes.y = 0;
+        }
+    } else {
         this._axes.x = 0;
         this._axes.y = 0;
-        return;
     }
 
-    this._touchData.getLocalPosition(this, this._axes);
-
-    if (Math.abs(this._axes.x) > this._options.wellRadius) {
-        this._axes.x = sign(this._axes.x);
-        this._axes.y = 0;
-        this._joystick.nub.x = this._axes.x * this._options.wellRadius;
-        this._joystick.nub.y = 0;
-    } else {
-        this._joystick.nub.x = this._axes.x;
-        this._joystick.nub.y = 0;
-        this._axes.x /= this._options.wellRadius;
-        this._axes.y = 0;
-    }
 
     if (this.onTouchMove) {
-        this.onTouchMove({ position: this._axes }); // GARBAGE
+        this.onTouchMove(this._axes);
+    }
+
+    if (this.onAxisChange) {
+        this.onAxisChange(this._axes);
     }
 }
 
 function dragListenerY(event: PIXI.interaction.InteractionEvent) {
-    if (!this.isTouched) {
+    if (event.data.identifier != this.identifier) return;
+
+    /**
+     * TODO: Investigate the possibility of eliminating this._axes.
+     * Using this.toLocal might have eliminated the need for this._axes.
+     */
+
+    if (this.isTouched) {
+        this._joystick.toLocal(event.data.global, null, this._axes);
+
+        if (Math.abs(this._axes.y) > this._options.wellRadius) {
+            this._axes.x = 0;
+            this._axes.y = sign(this._axes.y);
+            this._joystick.nub.x = 0;
+            this._joystick.nub.y = this._axes.y * this._options.wellRadius;
+        } else {
+            this._joystick.nub.x = 0;
+            this._joystick.nub.y = this._axes.y;
+            this._axes.x = 0;
+            this._axes.y /= this._options.wellRadius;
+        }
+    } else {
         this._axes.x = 0;
         this._axes.y = 0;
-        return;
-    }
-
-    this._axes.copy(this._touchData.getLocalPosition(this));
-
-    if (Math.abs(this._axes.y) > this._options.wellRadius) {
-        this._axes.x = 0
-        this._axes.y = sign(this._axes.y);
-        this._joystick.nub.x = 0
-        this._joystick.nub.y = this._axes.y * this._options.wellRadius;
-    } else {
-        this._joystick.nub.x = 0
-        this._joystick.nub.y = this._axes.y;
-        this._axes.x = 0
-        this._axes.y /= this._options.wellRadius;
     }
 
     if (this.onTouchMove) {
         this.onTouchMove(this._axes);
+    }
+
+    if (this.onAxisChange) {
+        this.onAxisChange(this._axes);
     }
 }
 
 /****************************/
 /*** The Stick Controller ***/
 /****************************/
-export class StickController extends PIXI.Container {
+export class StickController extends PIXI.Container implements IController {
 
-    public id: string = debug.id(this, 'Stick');
+    private _id: number;
+    get id() { return this._id; }
+    set id(value: number) { if (!this._id) { this._id = value; } else { throw new Error('id is readonly'); } }
+
+    private _stage: ControllableStage;
+    get stage() { throw new Error('Someone apparently needs the stage?!?'); }
+    set stage(value: ControllableStage) { if (!this._stage) { this._stage = value; } else { throw new Error('stage is readonly'); } }
 
     private _options: IStickOptions = {
         touch: true,
@@ -189,21 +221,15 @@ export class StickController extends PIXI.Container {
     }
 
     private _initEvents(mouseOrTouch: string) {
-        debug.log('initializing touch events', this);
         console.log(events[mouseOrTouch]);
 
         // Touch Start
         this.on(events[mouseOrTouch].onTouchStart, (event: PIXI.interaction.InteractionEvent) => {
-            debug.log('stick touch start', this);
-            console.log('==== the event ====');
-            console.log(event);
-            console.log('===================');
             this.identifier = event.data.identifier;
             this.isTouched = true;
             if (this.onTouchStart) this.onTouchStart(this._axes);
-            // this._dragListener(event);
 
-            // event.stopPropagation();
+            event.stopPropagation();
         });
 
         // Touch Drag
@@ -225,38 +251,24 @@ export class StickController extends PIXI.Container {
 
         // Touch End
         this.on(events[mouseOrTouch].onTouchEnd, (event: PIXI.interaction.InteractionEvent) => {
-            debug.log('Touch End', this);
-            console.log('==== the event ====');
-            console.log(event);
-            console.log('===================');
             if (event.data.identifier !== this.identifier) return;
-            debug.log('Touch End: identifier Matches [' + this.identifier + ' === ' + event.data.identifier + ']', this);
 
             this.identifier = undefined;
             this.isTouched = false;
             this.resetPosition();
             this.onAxisChange(this._axes);
 
-            // event.stopPropagation();
+            event.stopPropagation();
         });
         this.on(events[mouseOrTouch].onTouchEndOutside, (event: PIXI.interaction.InteractionEvent) => {
-            debug.log('Touch End Outside', this);
-            console.log('==== the event ====');
-            console.log(event);
-            console.log('===================');
-
-            if (event.data.identifier !== this.identifier) {
-                debug.log('Touch End Outside: identifier DOES NOT MATCH [' + this.identifier + ' !== ' + event.data.identifier + ']', this);
-                return;
-            }
-            debug.log('Touch End Outside: identifier Matches [' + this.identifier + ' === ' + event.data.identifier + ']', this);
+            if (event.data.identifier !== this.identifier) return;
 
             this.identifier = undefined;
             this.isTouched = false;
             this.resetPosition();
             this.onAxisChange(this._axes);
 
-            // event.stopPropagation();
+            event.stopPropagation();
         });
     }
 

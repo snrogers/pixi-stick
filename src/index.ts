@@ -1,5 +1,6 @@
 export { magnitude, unitVector } from './util';
 
+export { ControllableStage } from'./controllable-stage';
 // export { Stick } from './stick';
 import IStickOptions from './istickoptions';
 import Joystick from './joystick';

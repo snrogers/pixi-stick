@@ -64,8 +64,7 @@ export class Joystick extends PIXI.Container {
                         -this._options.wellRadius - this._options.wellRadius * this._options.nubSize,
                         -(this._options.wellRadius * this._options.nubSize),
                         this._options.wellRadius * 2 + this._options.wellRadius * 2 * this._options.nubSize,
-                        this._options.wellRadius * 2 * this._options.nubSize
-                        ,
+                        this._options.wellRadius * 2 * this._options.nubSize,
                         this._options.wellRadius * this._options.nubSize
                     );
                     (<PIXI.Graphics>this.well).endFill();

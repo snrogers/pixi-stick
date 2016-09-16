@@ -54,7 +54,7 @@ gulp.task('dev', ['compile-dev'], function(cb) {
     }
 
     gulp.watch('src/**/*.ts*', ['compile-dev']);
-
+    gulp.watch('node_modules/pixi.js/bin/*.js', ['compile-dev']);
 });
 
 

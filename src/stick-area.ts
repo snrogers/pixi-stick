@@ -1,7 +1,10 @@
 import { magnitude, sign, unitVector } from './util';
 
 import Joystick from './joystick';
-import IStickOptions from './istickoptions';
+import ControllableStage from './controllable-stage';
+
+import IStickOptions from './IStickOptions';
+import IController from './IController';
 
 import events from './events';
 
@@ -117,9 +120,15 @@ function dragListenerY(event: PIXI.interaction.InteractionEvent) {
 
 
 
-export class StickArea extends PIXI.Graphics {
+export class StickArea extends PIXI.Graphics implements IController {
 
-    public id: string = debug.id(this, 'StickArea');
+    private _id: number;
+    get id() { return this._id; }
+    set id(value: number) { if (!this._id) { this._id = value; } else { throw new Error('id is readonly'); } }
+
+    private _stage: ControllableStage;
+    get stage() { throw new Error('Someone apparently needs the stage?!?'); }
+    set stage(value: ControllableStage) { if (!this._stage) { this._stage = value; } else { throw new Error('stage is readonly'); } }
 
     private _options: IStickAreaOptions = {
         debug: false,
@@ -209,8 +218,6 @@ export class StickArea extends PIXI.Graphics {
     private _initEvents(mouseOrTouch: string) {
         // Touch Start
         this.on(events[mouseOrTouch].onTouchStart, (event: PIXI.interaction.InteractionEvent) => {
-            debug.log('Touch Start', this);
-
             this.identifier = event.data.identifier;
             this._spawnStick(event.data.getLocalPosition(this));
             this.isTouched = true;
@@ -242,11 +249,7 @@ export class StickArea extends PIXI.Graphics {
 
         // Touch End
         this.on(events[mouseOrTouch].onTouchEnd, (event: PIXI.interaction.InteractionEvent) => {
-            debug.log('Touch End', this);
-            debug.log('    this id: ' + this.identifier, this);
-            debug.log('    touch id: ' + event.data.identifier, this);
             if (event.data.identifier !== this.identifier) return;
-            debug.log('Touch End: identifier matches', this);
 
             this.identifier = undefined;
             this.isTouched = false;
@@ -257,15 +260,7 @@ export class StickArea extends PIXI.Graphics {
             event.stopPropagation();
         });
         this.on(events[mouseOrTouch].onTouchEndOutside, (event: PIXI.interaction.InteractionEvent) => {
-            debug.log('Touch End Outside', this);
-            if (event.data.identifier != this.identifier) return;
-            debug.log('Touch End Outside: identifier Matches', this);
-
-            debug.log('Touch End Outside', this);
-            debug.log('    this id: ' + this.identifier, this);
-            debug.log('    touch id: ' + event.data.identifier, this);
             if (event.data.identifier !== this.identifier) return;
-            debug.log('Touch End Outside: identifier matches', this);
 
             this.identifier = undefined;
             this.isTouched = false;
