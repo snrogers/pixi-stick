@@ -1,12 +1,12 @@
 {
     "name": "pixi-stick",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "a touchscreen thumbstick for Pixi.js",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/snrogers/pixi-stick.git"
     },
-    "main": "index.js",
+    "main": "dist/index.js",
     "scripts": {
         "postversion": "npm run bowerSync && npm run changelog",
         "buildWatch": "npm run concat && npm run umd",
