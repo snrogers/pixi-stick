@@ -4,12 +4,13 @@ var playerSpeed = 10;
 // create a renderer instance.
 var renderer = PIXI.autoDetectRenderer(400, 300);
 renderer.backgroundColor = 0x8888ff;
+PixiStick.init(renderer);
 
 // add the renderer view element to the DOM
 document.querySelector('#gameDiv').appendChild(renderer.view);
 
 // create a stage
-var stage = new PixiStick.ControllableStage();
+var stage = new PIXI.Container();
 
 // create a square to move around with the left stick
 var leftSquare = new PIXI.Graphics();
@@ -45,8 +46,8 @@ var rightStickArea = new PixiStick.StickArea(200, 0, 200, 300, {
 
 stage.addChild(leftSquare);
 stage.addChild(rightSquare);
-stage.addController(leftStickArea);
-stage.addController(rightStickArea);
+stage.addChild(leftStickArea);
+stage.addChild(rightStickArea);
 
 
 // Handle leftStickArea input

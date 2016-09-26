@@ -17,6 +17,16 @@ export function sign(value: number) {
     return value ? (value < 0 ? -1 : 1) : null
 }
 
-// function sgn(x) {
-//   return (x > 0) - (x < 0);
+export function isMouseEvent(event: MouseEvent | any): event is MouseEvent {
+    return (<MouseEvent>event).button !== undefined;
+}
+
+// export function computeTransformFromCanvas(canvas: HTMLCanvasElement, transform: PIXI.Matrix) {
+//     let canvasStyle = getComputedStyle(canvas);
+//     transform.a = Number(canvasStyle.width.slice(0, -2)) / canvas.width;
+//     transform.b = 0;
+//     transform.c = 0;
+//     transform.d = Number(canvasStyle.height.slice(0, -2)) / canvas.height;
+//     transform.tx = (!Number(canvasStyle.left.slice(0, -2))) ? 0 : Number(getComputedStyle(canvas).left.slice(0, -2));
+//     transform.ty = (!Number(canvasStyle.top.slice(0, -2))) ? 0 : Number(getComputedStyle(canvas).top.slice(0, -2));
 // }

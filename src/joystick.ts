@@ -3,13 +3,8 @@ import IStickOptions from './istickoptions';
 
 import debug from './debug';
 
-// TODO: Determine if JoyStick needs to be interactive or, as I suspect, I can get away
-//       with only the StickController being interactive
-
 /**
- * The graphical component. Contains no business logic (which is handled in StickController
- * This class is interactive and will generate InteractionEvents, but those events will
- * bubble up to the StickController class and be handled there.
+ * The graphical component. Contains no business logic (which is handled in StickController)
  */
 export class Joystick extends PIXI.Container {
 

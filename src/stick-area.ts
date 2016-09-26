@@ -1,7 +1,6 @@
-import { magnitude, sign, unitVector } from './util';
+import { isMouseEvent, magnitude, sign, unitVector } from './util';
 
 import Joystick from './joystick';
-import ControllableStage from './controllable-stage';
 
 import IStickOptions from './IStickOptions';
 import IController from './IController';
@@ -9,6 +8,8 @@ import IController from './IController';
 import events from './events';
 
 import debug from './debug';
+
+import { dragListener } from'./drag-listener';
 
 export interface IStickAreaOptions extends IStickOptions {
     [key: string]: any;
@@ -32,11 +33,6 @@ function generateColor() {
 /***********************/
 function dragListenerXY(event: PIXI.interaction.InteractionEvent) {
     if (event.data.identifier != this.identifier) return;
-
-    /**
-     * TODO: Investigate the possibility of eliminating this._axes.
-     * Using this.toLocal might have eliminated the need for this._axes.
-     */
 
     if (this.isTouched) {
         this._joystick.toLocal(event.data.global, null, this._axes);
@@ -126,10 +122,6 @@ export class StickArea extends PIXI.Graphics implements IController {
     get id() { return this._id; }
     set id(value: number) { if (!this._id) { this._id = value; } else { throw new Error('id is readonly'); } }
 
-    private _stage: ControllableStage;
-    get stage() { throw new Error('Someone apparently needs the stage?!?'); }
-    set stage(value: ControllableStage) { if (!this._stage) { this._stage = value; } else { throw new Error('stage is readonly'); } }
-
     private _options: IStickAreaOptions = {
         debug: false,
 
@@ -145,7 +137,7 @@ export class StickArea extends PIXI.Graphics implements IController {
     }
 
     private _joystick: Joystick;
-    private _dragListener: (event: PIXI.interaction.InteractionEvent) => void;
+    private _dragListener: (event: Touch | MouseEvent) => void;
 
     /** _axes is used as temporary storage for coordinates while they are being transformed.
      *  Without _axes, we would either need to either:
@@ -155,8 +147,9 @@ export class StickArea extends PIXI.Graphics implements IController {
      *  3) Assign the localPosition back to the event.data, risking issues where we might accidentally perform
      *     the global -> local transformation multiple times
      */
-
     private _axes: PIXI.Point;
+    /** Keeps track of eventListeners so they can be removed from the window on dispose() */
+    private _registeredEventListeners: [string, (event: TouchEvent | MouseEvent) => void][];
 
     public isTouched: boolean = false;
     public identifier: number;
@@ -188,6 +181,12 @@ export class StickArea extends PIXI.Graphics implements IController {
     constructor(x: number, y: number, width: number, height: number, options: IStickAreaOptions) {
         super();
 
+        this._axes = new PIXI.Point(0, 0);
+        this._registeredEventListeners = [];
+
+        this.x = x;
+        this.y = y;
+
         if (options) {
             for (let prop in options) {
                 if (options.hasOwnProperty(prop)) {
@@ -196,17 +195,13 @@ export class StickArea extends PIXI.Graphics implements IController {
             }
         }
 
-        this._axes = new PIXI.Point(0, 0);
-
-        this.x = x;
-        this.y = y;
         this.interactive = true;
 
         this._initGraphics(width, height);
+        this._joystick = new Joystick(0, 0, this._options);
+
         if (this._options.mouse) this._initEvents('mouse');
         if (this._options.touch) this._initEvents('touch');
-
-        this._joystick = new Joystick(0, 0, this._options);
     }
 
     private _initGraphics(width: number, height: number) {
@@ -222,59 +217,75 @@ export class StickArea extends PIXI.Graphics implements IController {
             this._spawnStick(event.data.getLocalPosition(this));
             this.isTouched = true;
             if (this.onTouchStart) this.onTouchStart(this._axes);
-            this._dragListener(event);
-
             event.stopPropagation();
         });
 
         // Touch Drag
-        switch (this._options.axes) {
-            case 'xy':
-                this._dragListener = dragListenerXY.bind(this);
-                break;
-            case 'x':
-                this._dragListener = dragListenerX.bind(this);
-                break;
-            case 'y':
-                this._dragListener = dragListenerY.bind(this);
-                break;
-            default:
-                throw new Error(this._options.type + ' is not a valid stick type');
-        }
-        this.on(events[mouseOrTouch].onTouchMove, function (event: PIXI.interaction.InteractionData) {
-            // debug.log('Touch Move', this);
-            this._dragListener(event);
-        }); // TODO: Remove debug wrapper
+        // Store this eventlistener for removal later
+        // TODO: HOLY HELL DO I NOT NEED TO BIND DRAGLISTNERE?!?!?!!?!??!?
+        if (!this._dragListener) this._dragListener = dragListener[this._options.axes];
+        this._registeredEventListeners.push([
+            events[mouseOrTouch].onTouchMove, (event: TouchEvent | MouseEvent) => {
+                if (isMouseEvent(event)) {
+                    if (this.isTouched) this._dragListener(event);
+                }
+                else {
+                    for (let i = 0; i < event.changedTouches.length; i++) {
+                        if (event.changedTouches[i].identifier === this.identifier) {
+                            this._dragListener(event.changedTouches[i]);
+                            break;
+                        }
+                    }
+                }
+            }
+        ])
+        // add the event listener to the window
+        window.addEventListener(events[mouseOrTouch].onTouchMove, this._registeredEventListeners[this._registeredEventListeners.length - 1][1]);
 
 
         // Touch End
-        this.on(events[mouseOrTouch].onTouchEnd, (event: PIXI.interaction.InteractionEvent) => {
-            if (event.data.identifier !== this.identifier) return;
+        // Store this eventlistener for removal later
+        this._registeredEventListeners.push([
+            events[mouseOrTouch].onTouchEnd, (event: TouchEvent | MouseEvent) => {
+                if (isMouseEvent(event)) { // if it's a mouseEvent
+                    this.identifier = undefined;
+                    this.isTouched = false;
+                    this.resetPosition();
+                    this.onAxisChange(this._axes);
+                    this._despawnStick();
 
-            this.identifier = undefined;
-            this.isTouched = false;
-            this.resetPosition();
-            this.onAxisChange(this._axes);
-            this._despawnStick();
+                    event.stopPropagation();
+                } else { // Else if it's a touchEvent
+                    for (let i = 0; i < event.changedTouches.length; i++) {
+                        if (event.changedTouches[i].identifier === this.identifier) {
+                            this.identifier = undefined;
+                            this.isTouched = false;
+                            this.resetPosition();
+                            this.onAxisChange(this._axes);
+                            this._despawnStick();
 
-            event.stopPropagation();
-        });
-        this.on(events[mouseOrTouch].onTouchEndOutside, (event: PIXI.interaction.InteractionEvent) => {
-            if (event.data.identifier !== this.identifier) return;
+                            event.stopPropagation();
+                            break;
+                        }
+                    }
+                }
+            }]);
+        // add the event listener to the window
+        window.addEventListener(events[mouseOrTouch].onTouchEnd, this._registeredEventListeners[this._registeredEventListeners.length - 1][1]);
 
-            this.identifier = undefined;
-            this.isTouched = false;
-            this.resetPosition();
-            this.onAxisChange(this._axes);
-            this._despawnStick();
-
-            event.stopPropagation();
-        });
     }
 
     private _despawnStick() {
         debug.log('despawning stick', this);
         this.removeChild(this._joystick);
+    }
+
+    public dispose() {
+        this._registeredEventListeners.forEach(
+            (arr: [string, (event: TouchEvent | MouseEvent) => void]) => {
+                window.removeEventListener(arr[0], arr[1]);
+            }
+        );
     }
 
     public resetPosition() {

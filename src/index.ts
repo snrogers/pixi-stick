@@ -1,6 +1,5 @@
 export { magnitude, unitVector } from './util';
 
-export { ControllableStage } from'./controllable-stage';
 // export { Stick } from './stick';
 import IStickOptions from './istickoptions';
 import Joystick from './joystick';
@@ -22,11 +21,9 @@ export class Stick extends StickController {
 
 }
 
+
 export { StickArea } from './stick-area';
 
-// export class StickArea extends StickController {
-//     constructor(x: number, y: number, options: IStickOptions = {}) {
-//         options.type = 'dynamic';
-//         super(x, y, options)
-//     }
-// }
+import { transformManager } from './transformManager';
+
+export function init(renderer: PIXI.SystemRenderer) { transformManager.renderer = renderer; }

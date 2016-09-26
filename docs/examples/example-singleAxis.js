@@ -4,12 +4,13 @@ var playerSpeed = 10;
 // create a renderer instance.
 var renderer = PIXI.autoDetectRenderer(400, 300);
 renderer.backgroundColor = 0x8888ff;
+PixiStick.init(renderer);
 
 // add the renderer view element to the DOM
 document.querySelector('#gameDiv').appendChild(renderer.view);
 
 // create a stage
-var stage = new PixiStick.ControllableStage();
+var stage = new PIXI.Container();
 
 // create a square to move around
 var square = new PIXI.Graphics();
@@ -32,19 +33,17 @@ var rightStick = new PixiStick.Stick(325, 225, {
 });
 
 stage.addChild(square);
-stage.addController(leftStick);
-stage.addController(rightStick);
+stage.addChild(leftStick);
+stage.addChild(rightStick);
 
 
 // Handle leftStick input
 leftStick.onAxisChange = function(axes) {
     square.xVel = axes.x * playerSpeed;
-    // square.yVel = axes.y * playerSpeed;
 }
 
 // Handle rightStick input
 rightStick.onAxisChange = function(axes) {
-    // square.xVel = axes.x * playerSpeed;
     square.yVel = axes.y * playerSpeed;
 }
 

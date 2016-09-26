@@ -63,12 +63,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	var util_1 = __webpack_require__(1);
 	exports.magnitude = util_1.magnitude;
 	exports.unitVector = util_1.unitVector;
-	var controllable_stage_1 = __webpack_require__(2);
-	exports.ControllableStage = controllable_stage_1.ControllableStage;
-	var debug_1 = __webpack_require__(4);
+	var debug_1 = __webpack_require__(2);
 	exports.debug = debug_1.debug;
 	// TODO: HUUUUUGE TODO: take node-uuid out of the bundle
-	var stick_controller_1 = __webpack_require__(5);
+	var stick_controller_1 = __webpack_require__(3);
 	var Stick = (function (_super) {
 	    __extends(Stick, _super);
 	    function Stick(x, y, options) {
@@ -79,14 +77,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return Stick;
 	}(stick_controller_1.default));
 	exports.Stick = Stick;
-	var stick_area_1 = __webpack_require__(7);
+	var stick_area_1 = __webpack_require__(8);
 	exports.StickArea = stick_area_1.StickArea;
-	// export class StickArea extends StickController {
-	//     constructor(x: number, y: number, options: IStickOptions = {}) {
-	//         options.type = 'dynamic';
-	//         super(x, y, options)
-	//     }
-	// }
+	var transformManager_1 = __webpack_require__(7);
+	function init(renderer) { transformManager_1.transformManager.renderer = renderer; }
+	exports.init = init;
 
 
 /***/ },
@@ -110,97 +105,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return value ? (value < 0 ? -1 : 1) : null;
 	}
 	exports.sign = sign;
-	// function sgn(x) {
-	//   return (x > 0) - (x < 0);
-	// }
+	function isMouseEvent(event) {
+	    return event.button !== undefined;
+	}
+	exports.isMouseEvent = isMouseEvent;
+	// export function computeTransformFromCanvas(canvas: HTMLCanvasElement, transform: PIXI.Matrix) {
+	//     let canvasStyle = getComputedStyle(canvas);
+	//     transform.a = Number(canvasStyle.width.slice(0, -2)) / canvas.width;
+	//     transform.b = 0;
+	//     transform.c = 0;
+	//     transform.d = Number(canvasStyle.height.slice(0, -2)) / canvas.height;
+	//     transform.tx = (!Number(canvasStyle.left.slice(0, -2))) ? 0 : Number(getComputedStyle(canvas).left.slice(0, -2));
+	//     transform.ty = (!Number(canvasStyle.top.slice(0, -2))) ? 0 : Number(getComputedStyle(canvas).top.slice(0, -2));
+	// } 
 
 
 /***/ },
 /* 2 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var events_1 = __webpack_require__(3);
-	var ControllableStage = (function (_super) {
-	    __extends(ControllableStage, _super);
-	    function ControllableStage() {
-	        _super.call(this);
-	        this._controllerIndex = 0;
-	        this._controllers = [];
-	        this.interactive = true;
-	        this._initEvents('mouse');
-	        this._initEvents('touch');
-	    }
-	    // Initializes event forwarding
-	    ControllableStage.prototype._initEvents = function (eventType) {
-	        var _this = this;
-	        var _loop_1 = function(eventName) {
-	            this_1.on(events_1.events[eventType][eventName], function (event) {
-	                if (events_1.events[eventType][eventName] !== 'touchmove') {
-	                    console.warn('**** Stage hit by Event: [' + events_1.events[eventType][eventName] + '] ****');
-	                    console.log(event);
-	                    console.warn('*****************************************');
-	                }
-	                for (var i = 0; i < _this._controllers.length; i++) {
-	                    if (_this._controllers[i].identifier === event.data.identifier) {
-	                        _this._controllers[i].emit(events_1.events[eventType][eventName], event);
-	                        break;
-	                    }
-	                }
-	            });
-	        };
-	        var this_1 = this;
-	        for (var eventName in events_1.events[eventType]) {
-	            _loop_1(eventName);
-	        }
-	    };
-	    ControllableStage.prototype.addController = function (controller) {
-	        controller.id = this._controllerIndex++;
-	        controller.stage = this;
-	        this._controllers.push(controller);
-	        this.addChild(controller);
-	    };
-	    // This will ensure that any touch events that miss everything else STILL get caught by the ControllableStage
-	    ControllableStage.prototype.containsPoint = function (point) {
-	        return true;
-	    };
-	    return ControllableStage;
-	}(PIXI.Container));
-	exports.ControllableStage = ControllableStage;
-	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.default = ControllableStage;
-
-
-/***/ },
-/* 3 */
-/***/ function(module, exports) {
-
-	"use strict";
-	exports.events = {
-	    mouse: {
-	        onTouchStart: 'mousedown',
-	        onTouchMove: 'mousemove',
-	        onTouchEnd: 'mouseup',
-	        onTouchEndOutside: 'mouseupoutside'
-	    },
-	    touch: {
-	        onTouchStart: 'touchstart',
-	        onTouchMove: 'touchmove',
-	        onTouchEnd: 'touchend',
-	        onTouchEndOutside: 'touchendoutside'
-	    }
-	};
-	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.default = exports.events;
-
-
-/***/ },
-/* 4 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -277,7 +198,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 5 */
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -287,109 +208,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	var util_1 = __webpack_require__(1);
-	var joystick_1 = __webpack_require__(6);
-	var events_1 = __webpack_require__(3);
-	/***********************/
-	/*** Event Listeners ***/
-	/***********************/
-	function dragListenerXY(event) {
-	    if (event.data.identifier != this.identifier)
-	        return;
-	    /**
-	     * TODO: Investigate the possibility of eliminating this._axes.
-	     * Using this.toLocal might have eliminated the need for this._axes.
-	     */
-	    if (this.isTouched) {
-	        this._joystick.toLocal(event.data.global, null, this._axes);
-	        if (util_1.magnitude(this._axes) > this._options.wellRadius) {
-	            util_1.unitVector(this._axes, this._axes);
-	            this._joystick.nub.x = this._axes.x * this._options.wellRadius;
-	            this._joystick.nub.y = this._axes.y * this._options.wellRadius;
-	        }
-	        else {
-	            this._joystick.nub.x = this._axes.x;
-	            this._joystick.nub.y = this._axes.y;
-	            this._axes.x /= this._options.wellRadius;
-	            this._axes.y /= this._options.wellRadius;
-	        }
-	    }
-	    else {
-	        this._axes.x = 0;
-	        this._axes.y = 0;
-	    }
-	    if (this.onTouchMove) {
-	        this.onTouchMove(this._axes);
-	    }
-	    if (this.onAxisChange) {
-	        this.onAxisChange(this._axes);
-	    }
-	}
-	function dragListenerX(event) {
-	    if (event.data.identifier != this.identifier)
-	        return;
-	    /**
-	     * TODO: Investigate the possibility of eliminating this._axes.
-	     * Using this.toLocal might have eliminated the need for this._axes.
-	     */
-	    if (this.isTouched) {
-	        this._joystick.toLocal(event.data.global, null, this._axes);
-	        if (Math.abs(this._axes.x) > this._options.wellRadius) {
-	            this._axes.x = util_1.sign(this._axes.x);
-	            this._axes.y = 0;
-	            this._joystick.nub.x = this._axes.x * this._options.wellRadius;
-	            this._joystick.nub.y = 0;
-	        }
-	        else {
-	            this._joystick.nub.x = this._axes.x;
-	            this._joystick.nub.y = 0;
-	            this._axes.x /= this._options.wellRadius;
-	            this._axes.y = 0;
-	        }
-	    }
-	    else {
-	        this._axes.x = 0;
-	        this._axes.y = 0;
-	    }
-	    if (this.onTouchMove) {
-	        this.onTouchMove(this._axes);
-	    }
-	    if (this.onAxisChange) {
-	        this.onAxisChange(this._axes);
-	    }
-	}
-	function dragListenerY(event) {
-	    if (event.data.identifier != this.identifier)
-	        return;
-	    /**
-	     * TODO: Investigate the possibility of eliminating this._axes.
-	     * Using this.toLocal might have eliminated the need for this._axes.
-	     */
-	    if (this.isTouched) {
-	        this._joystick.toLocal(event.data.global, null, this._axes);
-	        if (Math.abs(this._axes.y) > this._options.wellRadius) {
-	            this._axes.x = 0;
-	            this._axes.y = util_1.sign(this._axes.y);
-	            this._joystick.nub.x = 0;
-	            this._joystick.nub.y = this._axes.y * this._options.wellRadius;
-	        }
-	        else {
-	            this._joystick.nub.x = 0;
-	            this._joystick.nub.y = this._axes.y;
-	            this._axes.x = 0;
-	            this._axes.y /= this._options.wellRadius;
-	        }
-	    }
-	    else {
-	        this._axes.x = 0;
-	        this._axes.y = 0;
-	    }
-	    if (this.onTouchMove) {
-	        this.onTouchMove(this._axes);
-	    }
-	    if (this.onAxisChange) {
-	        this.onAxisChange(this._axes);
-	    }
-	}
+	var joystick_1 = __webpack_require__(4);
+	var events_1 = __webpack_require__(5);
+	var drag_listener_1 = __webpack_require__(6);
 	/****************************/
 	/*** The Stick Controller ***/
 	/****************************/
@@ -412,6 +233,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        };
 	        this.isTouched = false;
 	        this._axes = new PIXI.Point(0, 0);
+	        this._registeredEventListeners = [];
 	        this.x = x;
 	        this.y = y;
 	        if (options) {
@@ -421,11 +243,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	            }
 	        }
-	        // Set dimensions
-	        if (this._options.type === 'static') {
-	            this.width = this._options.wellRadius * 2;
-	            this.height = this._options.wellRadius * 2;
-	        }
+	        // // Set dimensions
+	        // if (this._options.type === 'static') {
+	        //     this.width = this._options.wellRadius * 2;
+	        //     this.height = this._options.wellRadius * 2;
+	        // }
 	        this.interactive = true;
 	        this._joystick = new joystick_1.default(0, 0, this._options); // ERR: x and y should be computed based on stick type, i.e. static/semi/dynamic
 	        this.addChild(this._joystick);
@@ -445,17 +267,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        enumerable: true,
 	        configurable: true
 	    });
-	    Object.defineProperty(StickController.prototype, "stage", {
-	        get: function () { throw new Error('Someone apparently needs the stage?!?'); },
-	        set: function (value) { if (!this._stage) {
-	            this._stage = value;
-	        }
-	        else {
-	            throw new Error('stage is readonly');
-	        } },
-	        enumerable: true,
-	        configurable: true
-	    });
+	    /**
+	     * TouchStart is fired by the PIXI InteractionManager, but because InteractionManager.processInteractive
+	     * does not keep a record of the recipient of TouchStart for a given touch, the StickController has its own
+	     * listener on the window to ensure it is able to catch the TouchEnd event from the window (InteractionManager
+	     * sends the TouchEnd event to whichever object the TouchEnd occurs upon instead of the originator so the StickController
+	     * will not receive the TouchEnd event if the user's finger is not over the StickController when they release)
+	     **/
 	    StickController.prototype._initEvents = function (mouseOrTouch) {
 	        var _this = this;
 	        console.log(events_1.default[mouseOrTouch]);
@@ -468,38 +286,58 @@ return /******/ (function(modules) { // webpackBootstrap
 	            event.stopPropagation();
 	        });
 	        // Touch Drag
-	        switch (this._options.axes) {
-	            case 'xy':
-	                this._dragListener = dragListenerXY.bind(this);
-	                break;
-	            case 'x':
-	                this._dragListener = dragListenerX.bind(this);
-	                break;
-	            case 'y':
-	                this._dragListener = dragListenerY.bind(this);
-	                break;
-	            default:
-	                throw new Error(this._options.type + ' is not a valid stick type');
-	        }
-	        this.on(events_1.default[mouseOrTouch].onTouchMove, this._dragListener); // TODO: Remove debug wrapper
+	        // Store this eventlistener for removal later
+	        if (!this._dragListener)
+	            this._dragListener = drag_listener_1.dragListener[this._options.axes];
+	        this._registeredEventListeners.push([
+	            events_1.default[mouseOrTouch].onTouchMove, function (event) {
+	                if (util_1.isMouseEvent(event)) {
+	                    if (_this.isTouched)
+	                        _this._dragListener(event);
+	                }
+	                else {
+	                    for (var i = 0; i < event.changedTouches.length; i++) {
+	                        if (event.changedTouches[i].identifier === _this.identifier) {
+	                            _this._dragListener(event.changedTouches[i]);
+	                            break;
+	                        }
+	                    }
+	                }
+	            }
+	        ]);
+	        // add the event listener to the window
+	        window.addEventListener(events_1.default[mouseOrTouch].onTouchMove, this._registeredEventListeners[this._registeredEventListeners.length - 1][1]);
 	        // Touch End
-	        this.on(events_1.default[mouseOrTouch].onTouchEnd, function (event) {
-	            if (event.data.identifier !== _this.identifier)
-	                return;
-	            _this.identifier = undefined;
-	            _this.isTouched = false;
-	            _this.resetPosition();
-	            _this.onAxisChange(_this._axes);
-	            event.stopPropagation();
-	        });
-	        this.on(events_1.default[mouseOrTouch].onTouchEndOutside, function (event) {
-	            if (event.data.identifier !== _this.identifier)
-	                return;
-	            _this.identifier = undefined;
-	            _this.isTouched = false;
-	            _this.resetPosition();
-	            _this.onAxisChange(_this._axes);
-	            event.stopPropagation();
+	        // Store this eventlistener for removal later
+	        this._registeredEventListeners.push([
+	            events_1.default[mouseOrTouch].onTouchEnd, function (event) {
+	                if (util_1.isMouseEvent(event)) {
+	                    _this.identifier = undefined;
+	                    _this.isTouched = false;
+	                    _this.resetPosition();
+	                    _this.onAxisChange(_this._axes);
+	                    event.stopPropagation();
+	                }
+	                else {
+	                    for (var i = 0; i < event.changedTouches.length; i++) {
+	                        if (event.changedTouches[i].identifier === _this.identifier) {
+	                            _this.identifier = undefined;
+	                            _this.isTouched = false;
+	                            _this.resetPosition();
+	                            _this.onAxisChange(_this._axes);
+	                            event.stopPropagation();
+	                            break;
+	                        }
+	                    }
+	                }
+	            }]);
+	        // add the event listener to the window
+	        window.addEventListener(events_1.default[mouseOrTouch].onTouchEnd, this._registeredEventListeners[this._registeredEventListeners.length - 1][1]);
+	    };
+	    // Removes all window eventlisteners that this instance has registered
+	    StickController.prototype.dispose = function () {
+	        this._registeredEventListeners.forEach(function (arr) {
+	            window.removeEventListener(arr[0], arr[1]);
 	        });
 	    };
 	    StickController.prototype.resetPosition = function () {
@@ -516,7 +354,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 6 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -525,13 +363,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var debug_1 = __webpack_require__(4);
-	// TODO: Determine if JoyStick needs to be interactive or, as I suspect, I can get away
-	//       with only the StickController being interactive
+	var debug_1 = __webpack_require__(2);
 	/**
-	 * The graphical component. Contains no business logic (which is handled in StickController
-	 * This class is interactive and will generate InteractionEvents, but those events will
-	 * bubble up to the StickController class and be handled there.
+	 * The graphical component. Contains no business logic (which is handled in StickController)
 	 */
 	var Joystick = (function (_super) {
 	    __extends(Joystick, _super);
@@ -612,7 +446,126 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	"use strict";
+	exports.events = {
+	    mouse: {
+	        onTouchStart: 'mousedown',
+	        onTouchMove: 'mousemove',
+	        onTouchEnd: 'mouseup',
+	        onTouchEndOutside: 'mouseupoutside'
+	    },
+	    touch: {
+	        onTouchStart: 'touchstart',
+	        onTouchMove: 'touchmove',
+	        onTouchEnd: 'touchend',
+	        onTouchEndOutside: 'touchendoutside'
+	    }
+	};
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = exports.events;
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var util_1 = __webpack_require__(1);
+	var transformManager_1 = __webpack_require__(7);
+	exports.dragListener = {
+	    xy: function (event) {
+	        transformManager_1.transformManager.mapPositionToPoint(this._axes, event.clientX, event.clientY);
+	        this._joystick.toLocal(this._axes, null, this._axes);
+	        if (util_1.magnitude(this._axes) > this._options.wellRadius) {
+	            util_1.unitVector(this._axes, this._axes);
+	            this._joystick.nub.x = this._axes.x * this._options.wellRadius;
+	            this._joystick.nub.y = this._axes.y * this._options.wellRadius;
+	        }
+	        else {
+	            this._joystick.nub.x = this._axes.x;
+	            this._joystick.nub.y = this._axes.y;
+	            this._axes.x /= this._options.wellRadius;
+	            this._axes.y /= this._options.wellRadius;
+	        }
+	        if (this.onTouchMove) {
+	            this.onTouchMove(this._axes);
+	        }
+	        if (this.onAxisChange) {
+	            this.onAxisChange(this._axes);
+	        }
+	    },
+	    x: function (event) {
+	        transformManager_1.transformManager.mapPositionToPoint(this._axes, event.clientX, event.clientY);
+	        this._joystick.toLocal(this._axes, null, this._axes);
+	        if (Math.abs(this._axes.x) > this._options.wellRadius) {
+	            this._axes.x = util_1.sign(this._axes.x);
+	            this._axes.y = 0;
+	            this._joystick.nub.x = this._axes.x * this._options.wellRadius;
+	            this._joystick.nub.y = 0;
+	        }
+	        else {
+	            this._joystick.nub.x = this._axes.x;
+	            this._joystick.nub.y = 0;
+	            this._axes.x /= this._options.wellRadius;
+	            this._axes.y = 0;
+	        }
+	        if (this.onTouchMove) {
+	            this.onTouchMove(this._axes);
+	        }
+	        if (this.onAxisChange) {
+	            this.onAxisChange(this._axes);
+	        }
+	    },
+	    y: function dragListenerY(event) {
+	        transformManager_1.transformManager.mapPositionToPoint(this._axes, event.clientX, event.clientY);
+	        this._joystick.toLocal(this._axes, null, this._axes);
+	        if (Math.abs(this._axes.y) > this._options.wellRadius) {
+	            this._axes.x = 0;
+	            this._axes.y = util_1.sign(this._axes.y);
+	            this._joystick.nub.x = 0;
+	            this._joystick.nub.y = this._axes.y * this._options.wellRadius;
+	        }
+	        else {
+	            this._joystick.nub.x = 0;
+	            this._joystick.nub.y = this._axes.y;
+	            this._axes.x = 0;
+	            this._axes.y /= this._options.wellRadius;
+	        }
+	        if (this.onTouchMove) {
+	            this.onTouchMove(this._axes);
+	        }
+	        if (this.onAxisChange) {
+	            this.onAxisChange(this._axes);
+	        }
+	    }
+	};
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = exports.dragListener;
+
+
+/***/ },
 /* 7 */
+/***/ function(module, exports) {
+
+	"use strict";
+	/**
+	 * Provides a way to get at the InteractionManager.mapPositionToPoint() function from outside of the InteractionManager
+	 */
+	exports.transformManager = {
+	    _renderer: PIXI.SystemRenderer,
+	    get renderer() { return this._renderer; },
+	    set renderer(value) { this._renderer = value; },
+	    mapPositionToPoint: function (point, x, y) {
+	        return this._renderer.plugins.interaction.mapPositionToPoint(point, x, y);
+	    }
+	};
+
+
+/***/ },
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -622,9 +575,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	var util_1 = __webpack_require__(1);
-	var joystick_1 = __webpack_require__(6);
-	var events_1 = __webpack_require__(3);
-	var debug_1 = __webpack_require__(4);
+	var joystick_1 = __webpack_require__(4);
+	var events_1 = __webpack_require__(5);
+	var debug_1 = __webpack_require__(2);
+	var drag_listener_1 = __webpack_require__(6);
 	function generateColor() {
 	    var color = 0;
 	    var primary = Math.floor(Math.random() * 3);
@@ -640,10 +594,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	function dragListenerXY(event) {
 	    if (event.data.identifier != this.identifier)
 	        return;
-	    /**
-	     * TODO: Investigate the possibility of eliminating this._axes.
-	     * Using this.toLocal might have eliminated the need for this._axes.
-	     */
 	    if (this.isTouched) {
 	        this._joystick.toLocal(event.data.global, null, this._axes);
 	        if (util_1.magnitude(this._axes) > this._options.wellRadius) {
@@ -734,6 +684,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            wellRadius: 50,
 	        };
 	        this.isTouched = false;
+	        this._axes = new PIXI.Point(0, 0);
+	        this._registeredEventListeners = [];
+	        this.x = x;
+	        this.y = y;
 	        if (options) {
 	            for (var prop in options) {
 	                if (options.hasOwnProperty(prop)) {
@@ -741,16 +695,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	            }
 	        }
-	        this._axes = new PIXI.Point(0, 0);
-	        this.x = x;
-	        this.y = y;
 	        this.interactive = true;
 	        this._initGraphics(width, height);
+	        this._joystick = new joystick_1.default(0, 0, this._options);
 	        if (this._options.mouse)
 	            this._initEvents('mouse');
 	        if (this._options.touch)
 	            this._initEvents('touch');
-	        this._joystick = new joystick_1.default(0, 0, this._options);
 	    }
 	    Object.defineProperty(StickArea.prototype, "id", {
 	        get: function () { return this._id; },
@@ -759,17 +710,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        else {
 	            throw new Error('id is readonly');
-	        } },
-	        enumerable: true,
-	        configurable: true
-	    });
-	    Object.defineProperty(StickArea.prototype, "stage", {
-	        get: function () { throw new Error('Someone apparently needs the stage?!?'); },
-	        set: function (value) { if (!this._stage) {
-	            this._stage = value;
-	        }
-	        else {
-	            throw new Error('stage is readonly');
 	        } },
 	        enumerable: true,
 	        configurable: true
@@ -788,52 +728,68 @@ return /******/ (function(modules) { // webpackBootstrap
 	            _this.isTouched = true;
 	            if (_this.onTouchStart)
 	                _this.onTouchStart(_this._axes);
-	            _this._dragListener(event);
 	            event.stopPropagation();
 	        });
 	        // Touch Drag
-	        switch (this._options.axes) {
-	            case 'xy':
-	                this._dragListener = dragListenerXY.bind(this);
-	                break;
-	            case 'x':
-	                this._dragListener = dragListenerX.bind(this);
-	                break;
-	            case 'y':
-	                this._dragListener = dragListenerY.bind(this);
-	                break;
-	            default:
-	                throw new Error(this._options.type + ' is not a valid stick type');
-	        }
-	        this.on(events_1.default[mouseOrTouch].onTouchMove, function (event) {
-	            // debug.log('Touch Move', this);
-	            this._dragListener(event);
-	        }); // TODO: Remove debug wrapper
+	        // Store this eventlistener for removal later
+	        // TODO: HOLY HELL DO I NOT NEED TO BIND DRAGLISTNERE?!?!?!!?!??!?
+	        if (!this._dragListener)
+	            this._dragListener = drag_listener_1.dragListener[this._options.axes];
+	        this._registeredEventListeners.push([
+	            events_1.default[mouseOrTouch].onTouchMove, function (event) {
+	                if (util_1.isMouseEvent(event)) {
+	                    if (_this.isTouched)
+	                        _this._dragListener(event);
+	                }
+	                else {
+	                    for (var i = 0; i < event.changedTouches.length; i++) {
+	                        if (event.changedTouches[i].identifier === _this.identifier) {
+	                            _this._dragListener(event.changedTouches[i]);
+	                            break;
+	                        }
+	                    }
+	                }
+	            }
+	        ]);
+	        // add the event listener to the window
+	        window.addEventListener(events_1.default[mouseOrTouch].onTouchMove, this._registeredEventListeners[this._registeredEventListeners.length - 1][1]);
 	        // Touch End
-	        this.on(events_1.default[mouseOrTouch].onTouchEnd, function (event) {
-	            if (event.data.identifier !== _this.identifier)
-	                return;
-	            _this.identifier = undefined;
-	            _this.isTouched = false;
-	            _this.resetPosition();
-	            _this.onAxisChange(_this._axes);
-	            _this._despawnStick();
-	            event.stopPropagation();
-	        });
-	        this.on(events_1.default[mouseOrTouch].onTouchEndOutside, function (event) {
-	            if (event.data.identifier !== _this.identifier)
-	                return;
-	            _this.identifier = undefined;
-	            _this.isTouched = false;
-	            _this.resetPosition();
-	            _this.onAxisChange(_this._axes);
-	            _this._despawnStick();
-	            event.stopPropagation();
-	        });
+	        // Store this eventlistener for removal later
+	        this._registeredEventListeners.push([
+	            events_1.default[mouseOrTouch].onTouchEnd, function (event) {
+	                if (util_1.isMouseEvent(event)) {
+	                    _this.identifier = undefined;
+	                    _this.isTouched = false;
+	                    _this.resetPosition();
+	                    _this.onAxisChange(_this._axes);
+	                    _this._despawnStick();
+	                    event.stopPropagation();
+	                }
+	                else {
+	                    for (var i = 0; i < event.changedTouches.length; i++) {
+	                        if (event.changedTouches[i].identifier === _this.identifier) {
+	                            _this.identifier = undefined;
+	                            _this.isTouched = false;
+	                            _this.resetPosition();
+	                            _this.onAxisChange(_this._axes);
+	                            _this._despawnStick();
+	                            event.stopPropagation();
+	                            break;
+	                        }
+	                    }
+	                }
+	            }]);
+	        // add the event listener to the window
+	        window.addEventListener(events_1.default[mouseOrTouch].onTouchEnd, this._registeredEventListeners[this._registeredEventListeners.length - 1][1]);
 	    };
 	    StickArea.prototype._despawnStick = function () {
 	        debug_1.default.log('despawning stick', this);
 	        this.removeChild(this._joystick);
+	    };
+	    StickArea.prototype.dispose = function () {
+	        this._registeredEventListeners.forEach(function (arr) {
+	            window.removeEventListener(arr[0], arr[1]);
+	        });
 	    };
 	    StickArea.prototype.resetPosition = function () {
 	        this._joystick.nub.x = 0;
