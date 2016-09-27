@@ -17,7 +17,7 @@ import { dragListener } from './drag-listener';
 /****************************/
 /*** The Stick Controller ***/
 /****************************/
-export class StickController extends PIXI.Container implements IController {
+export class GeneralController extends PIXI.Container implements IController {
 
     private _id: number;
     get id() { return this._id; }
@@ -97,71 +97,42 @@ export class StickController extends PIXI.Container implements IController {
 
         this.interactive = true;
 
-        this._joystick = new Joystick(0, 0, this._options); // ERR: x and y should be computed based on stick type, i.e. static/semi/dynamic
-        this.addChild(this._joystick);
+        this._init();
 
         if (this._options.mouse) this._initEvents('mouse');
         if (this._options.touch) this._initEvents('touch');
+    }
+
+    private _init() {
+        this._joystick = new Joystick(0, 0, this._options);
+        this.addChild(this._joystick);
     }
 
     /**
      * TouchStart is fired by the PIXI InteractionManager, but because InteractionManager.processInteractive
      * does not keep a record of the recipient of TouchStart for a given touch, the StickController has its own
      * listener on the window to ensure it is able to catch the TouchEnd event from the window (InteractionManager
-     * sends the TouchEnd event to whichever object the TouchEnd occurs upon instead of the originator so the StickController
-     * will not receive the TouchEnd event if the user's finger is not over the StickController when they release)
+     * sends the TouchEnd event to whichever object the TouchEnd occurs upon instead of the original recipient of 
+     * TouchStare so the StickController will not receive the TouchEnd event from the PIXI event system if the 
+     * user's finger is not over the StickController when they release)
      **/
     private _initEvents(mouseOrTouch: string) {
         console.log(events[mouseOrTouch]);
 
         // Touch Start
         this.on(events[mouseOrTouch].onTouchStart, (event: PIXI.interaction.InteractionEvent) => {
-            this.identifier = event.data.identifier;
-            this.isTouched = true;
-            if (this.onTouchStart) this.onTouchStart(this._axes);
-            event.stopPropagation();
         });
 
         // Touch Drag
         // Store this eventlistener for removal later
         if (!this._dragListener) this._dragListener = dragListener[this._options.axes];
         this._addWindowListener(events[mouseOrTouch].onTouchMove, (event: TouchEvent | MouseEvent) => {
-            if (isMouseEvent(event)) {
-                if (this.isTouched) this._dragListener(event);
-            } else {
-                for (let i = 0; i < event.changedTouches.length; i++) {
-                    if (event.changedTouches[i].identifier === this.identifier) {
-                        this._dragListener(event.changedTouches[i]);
-                        break;
-                    }
-                }
-            }
         });
 
         // Touch End
         // Store this eventlistener for removal later
         this._addWindowListener(
             events[mouseOrTouch].onTouchEnd, (event: TouchEvent | MouseEvent) => {
-                if (isMouseEvent(event)) { // if it's a mouseEvent
-                    this.identifier = undefined;
-                    this.isTouched = false;
-                    this.resetPosition();
-                    this.onAxisChange(this._axes);
-
-                    event.stopPropagation();
-                } else { // Else if it's a touchEvent
-                    for (let i = 0; i < event.changedTouches.length; i++) {
-                        if (event.changedTouches[i].identifier === this.identifier) {
-                            this.identifier = undefined;
-                            this.isTouched = false;
-                            this.resetPosition();
-                            this.onAxisChange(this._axes);
-
-                            event.stopPropagation();
-                            break;
-                        }
-                    }
-                }
             });
     }
 
@@ -170,6 +141,57 @@ export class StickController extends PIXI.Container implements IController {
         this._registeredEventListeners.push([eventString, func]);
         window.addEventListener(eventString, func);
     }
+
+    private _processTouchStart(event: PIXI.interaction.InteractionEvent) {
+        this.identifier = event.data.identifier;
+        this.isTouched = true;
+
+        if (isMouseEvent(event.data.originalEvent)) {
+            this._dragListener(<MouseEvent>event.data.originalEvent)
+        } else {
+            this._dragListener((<TouchEvent>event.data.originalEvent).changedTouches[event.data.identifier])
+        };
+
+        if (this.onTouchStart) this.onTouchStart(this._axes);
+        event.stopPropagation();
+    }
+
+    private _processTouchMove(event: TouchEvent | MouseEvent) {
+        if (isMouseEvent(event)) {
+            if (this.isTouched) this._dragListener(event);
+        } else {
+            for (let i = 0; i < event.changedTouches.length; i++) {
+                if (event.changedTouches[i].identifier === this.identifier) {
+                    this._dragListener(event.changedTouches[i]);
+                    break;
+                }
+            }
+        }
+    }
+
+    private _processTouchEnd(event: TouchEvent | MouseEvent) {
+        if (isMouseEvent(event)) { // if it's a mouseEvent
+            this.identifier = undefined;
+            this.isTouched = false;
+            this.resetPosition();
+            this.onAxisChange(this._axes);
+
+            event.stopPropagation();
+        } else { // Else if it's a touchEvent
+            for (let i = 0; i < event.changedTouches.length; i++) {
+                if (event.changedTouches[i].identifier === this.identifier) {
+                    this.identifier = undefined;
+                    this.isTouched = false;
+                    this.resetPosition();
+                    this.onAxisChange(this._axes);
+
+                    event.stopPropagation();
+                    break;
+                }
+            }
+        }
+    }
+
 
 
     // Removes all window eventlisteners that this instance has registered
@@ -190,4 +212,4 @@ export class StickController extends PIXI.Container implements IController {
     }
 }
 
-export default StickController;
+export default GeneralController;

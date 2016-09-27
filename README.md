@@ -33,6 +33,29 @@ stage.removeChild(stick);
 stick.dispose();
 ```
 
+## Events
+```js
+/** Fires when the stick is initially touched */
+stick.onTouchStart = function (axes){
+    console.log(axes.x + ', ' + axes.y); 
+};
+
+/** Fires when the touch moves */
+stick.onTouchMove = function (axes){
+    console.log(axes.x + ', ' + axes.y); 
+};
+
+/** Fires when the stick is released */
+stick.onTouchEnd = function (axes){
+    console.log(axes.x + ', ' + axes.y); 
+};
+
+/** Fires any time the axes change, i.e. whenever any of the above events fire, onAxisChange also fires */
+stick.onAxisChange = function (axes){
+    console.log(axes.x + ', ' + axes.y); 
+};
+```
+
 ## API
 ### PixiStick.Stick
 > constructor(x, y, options)

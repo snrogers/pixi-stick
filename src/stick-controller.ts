@@ -1,4 +1,4 @@
-import { isMouseEvent, magnitude, sign, unitVector } from './util';
+import { isMouseEvent, isTouchEvent, magnitude, sign, unitVector } from './util';
 
 import Joystick from './joystick';
 
@@ -96,12 +96,6 @@ export class StickController extends PIXI.Container implements IController {
             }
         }
 
-        // // Set dimensions
-        // if (this._options.type === 'static') {
-        //     this.width = this._options.wellRadius * 2;
-        //     this.height = this._options.wellRadius * 2;
-        // }
-
         this.interactive = true;
 
         this._joystick = new Joystick(0, 0, this._options); // ERR: x and y should be computed based on stick type, i.e. static/semi/dynamic
@@ -115,17 +109,25 @@ export class StickController extends PIXI.Container implements IController {
      * TouchStart is fired by the PIXI InteractionManager, but because InteractionManager.processInteractive
      * does not keep a record of the recipient of TouchStart for a given touch, the StickController has its own
      * listener on the window to ensure it is able to catch the TouchEnd event from the window (InteractionManager
-     * sends the TouchEnd event to whichever object the TouchEnd occurs upon instead of the originator so the StickController
-     * will not receive the TouchEnd event if the user's finger is not over the StickController when they release)
+     * sends the TouchEnd event to whichever object the TouchEnd occurs upon instead of the original recipient of 
+     * TouchStare so the StickController will not receive the TouchEnd event from the PIXI event system if the 
+     * user's finger is not over the StickController when they release)
      **/
     private _initEvents(mouseOrTouch: string) {
-        console.log(events[mouseOrTouch]);
-
         // Touch Start
         this.on(events[mouseOrTouch].onTouchStart, (event: PIXI.interaction.InteractionEvent) => {
             this.identifier = event.data.identifier;
             this.isTouched = true;
+
+            if (isMouseEvent(event.data.originalEvent)) {
+                this._dragListener(<MouseEvent>event.data.originalEvent)
+            } else {
+                this._dragListener((<TouchEvent>event.data.originalEvent).changedTouches[event.data.identifier])
+            };
+
             if (this.onTouchStart) this.onTouchStart(this._axes);
+            if (this.onAxisChange) this.onAxisChange(this._axes);
+
             event.stopPropagation();
         });
 
@@ -134,17 +136,18 @@ export class StickController extends PIXI.Container implements IController {
         if (!this._dragListener) this._dragListener = dragListener[this._options.axes];
         this._registeredEventListeners.push([
             events[mouseOrTouch].onTouchMove, (event: TouchEvent | MouseEvent) => {
-                if (isMouseEvent(event)) {
-                    if (this.isTouched) this._dragListener(event);
-                }
-                else {
-                    for (let i = 0; i < event.changedTouches.length; i++) {
-                        if (event.changedTouches[i].identifier === this.identifier) {
-                            this._dragListener(event.changedTouches[i]);
-                            break;
+                if (this.isTouched) {
+                    if (isMouseEvent(event)) this._dragListener(event);
+                    else {
+                        for (let i = 0; i < event.changedTouches.length; i++) {
+                            if (event.changedTouches[i].identifier === this.identifier) {
+                                this._dragListener(event.changedTouches[i]);
+                                break;
+                            }
                         }
                     }
                 }
+
             }
         ])
         // add the event listener to the window
@@ -155,23 +158,25 @@ export class StickController extends PIXI.Container implements IController {
         // Store this eventlistener for removal later
         this._registeredEventListeners.push([
             events[mouseOrTouch].onTouchEnd, (event: TouchEvent | MouseEvent) => {
-                if (isMouseEvent(event)) { // if it's a mouseEvent
-                    this.identifier = undefined;
-                    this.isTouched = false;
-                    this.resetPosition();
-                    this.onAxisChange(this._axes);
+                if (this.isTouched) {
+                    if (isMouseEvent(event)) { // if it's a mouseEvent
+                        this.identifier = undefined;
+                        this.isTouched = false;
+                        this.resetPosition();
+                        if (this.onAxisChange) this.onAxisChange(this._axes);
 
-                    event.stopPropagation();
-                } else { // Else if it's a touchEvent
-                    for (let i = 0; i < event.changedTouches.length; i++) {
-                        if (event.changedTouches[i].identifier === this.identifier) {
-                            this.identifier = undefined;
-                            this.isTouched = false;
-                            this.resetPosition();
-                            this.onAxisChange(this._axes);
+                        event.stopPropagation();
+                    } else { // Else if it's a touchEvent
+                        for (let i = 0; i < event.changedTouches.length; i++) {
+                            if (event.changedTouches[i].identifier === this.identifier) {
+                                this.identifier = undefined;
+                                this.isTouched = false;
+                                this.resetPosition();
+                                if (this.onAxisChange) this.onAxisChange(this._axes);
 
-                            event.stopPropagation();
-                            break;
+                                event.stopPropagation();
+                                break;
+                            }
                         }
                     }
                 }

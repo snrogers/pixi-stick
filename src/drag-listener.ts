@@ -22,12 +22,8 @@ export const dragListener: IListenerDictionary = {
             this._axes.y /= this._options.wellRadius;
         }
 
-        if (this.onTouchMove) {
-            this.onTouchMove(this._axes);
-        }
-        if (this.onAxisChange) {
-            this.onAxisChange(this._axes);
-        }
+        if (this.onTouchMove) this.onTouchMove(this._axes);
+        if (this.onAxisChange) this.onAxisChange(this._axes);
     },
 
     x: function (event: Touch | MouseEvent) {
@@ -46,13 +42,8 @@ export const dragListener: IListenerDictionary = {
             this._axes.y = 0;
         }
 
-        if (this.onTouchMove) {
-            this.onTouchMove(this._axes);
-        }
-
-        if (this.onAxisChange) {
-            this.onAxisChange(this._axes);
-        }
+        if (this.onTouchMove) this.onTouchMove(this._axes);
+        if (this.onAxisChange) this.onAxisChange(this._axes);
     },
 
     y: function dragListenerY(event: Touch | MouseEvent) {
@@ -71,13 +62,8 @@ export const dragListener: IListenerDictionary = {
             this._axes.y /= this._options.wellRadius;
         }
 
-        if (this.onTouchMove) {
-            this.onTouchMove(this._axes);
-        }
-
-        if (this.onAxisChange) {
-            this.onAxisChange(this._axes);
-        }
+        if (this.onTouchMove) this.onTouchMove(this._axes);
+        if (this.onAxisChange) this.onAxisChange(this._axes);
     }
 }
 

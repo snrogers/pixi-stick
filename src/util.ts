@@ -21,6 +21,10 @@ export function isMouseEvent(event: MouseEvent | any): event is MouseEvent {
     return (<MouseEvent>event).button !== undefined;
 }
 
+export function isTouchEvent(event: TouchEvent | any): event is TouchEvent {
+    return (<TouchEvent>event).changedTouches !== undefined;
+}
+
 // export function computeTransformFromCanvas(canvas: HTMLCanvasElement, transform: PIXI.Matrix) {
 //     let canvasStyle = getComputedStyle(canvas);
 //     transform.a = Number(canvasStyle.width.slice(0, -2)) / canvas.width;

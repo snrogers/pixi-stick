@@ -109,6 +109,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return event.button !== undefined;
 	}
 	exports.isMouseEvent = isMouseEvent;
+	function isTouchEvent(event) {
+	    return event.changedTouches !== undefined;
+	}
+	exports.isTouchEvent = isTouchEvent;
 	// export function computeTransformFromCanvas(canvas: HTMLCanvasElement, transform: PIXI.Matrix) {
 	//     let canvasStyle = getComputedStyle(canvas);
 	//     transform.a = Number(canvasStyle.width.slice(0, -2)) / canvas.width;
@@ -243,11 +247,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	            }
 	        }
-	        // // Set dimensions
-	        // if (this._options.type === 'static') {
-	        //     this.width = this._options.wellRadius * 2;
-	        //     this.height = this._options.wellRadius * 2;
-	        // }
 	        this.interactive = true;
 	        this._joystick = new joystick_1.default(0, 0, this._options); // ERR: x and y should be computed based on stick type, i.e. static/semi/dynamic
 	        this.addChild(this._joystick);
@@ -271,18 +270,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * TouchStart is fired by the PIXI InteractionManager, but because InteractionManager.processInteractive
 	     * does not keep a record of the recipient of TouchStart for a given touch, the StickController has its own
 	     * listener on the window to ensure it is able to catch the TouchEnd event from the window (InteractionManager
-	     * sends the TouchEnd event to whichever object the TouchEnd occurs upon instead of the originator so the StickController
-	     * will not receive the TouchEnd event if the user's finger is not over the StickController when they release)
+	     * sends the TouchEnd event to whichever object the TouchEnd occurs upon instead of the original recipient of
+	     * TouchStare so the StickController will not receive the TouchEnd event from the PIXI event system if the
+	     * user's finger is not over the StickController when they release)
 	     **/
 	    StickController.prototype._initEvents = function (mouseOrTouch) {
 	        var _this = this;
-	        console.log(events_1.default[mouseOrTouch]);
 	        // Touch Start
 	        this.on(events_1.default[mouseOrTouch].onTouchStart, function (event) {
 	            _this.identifier = event.data.identifier;
 	            _this.isTouched = true;
+	            if (util_1.isMouseEvent(event.data.originalEvent)) {
+	                _this._dragListener(event.data.originalEvent);
+	            }
+	            else {
+	                _this._dragListener(event.data.originalEvent.changedTouches[event.data.identifier]);
+	            }
+	            ;
 	            if (_this.onTouchStart)
 	                _this.onTouchStart(_this._axes);
+	            if (_this.onAxisChange)
+	                _this.onAxisChange(_this._axes);
 	            event.stopPropagation();
 	        });
 	        // Touch Drag
@@ -291,15 +299,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._dragListener = drag_listener_1.dragListener[this._options.axes];
 	        this._registeredEventListeners.push([
 	            events_1.default[mouseOrTouch].onTouchMove, function (event) {
-	                if (util_1.isMouseEvent(event)) {
-	                    if (_this.isTouched)
+	                if (_this.isTouched) {
+	                    if (util_1.isMouseEvent(event))
 	                        _this._dragListener(event);
-	                }
-	                else {
-	                    for (var i = 0; i < event.changedTouches.length; i++) {
-	                        if (event.changedTouches[i].identifier === _this.identifier) {
-	                            _this._dragListener(event.changedTouches[i]);
-	                            break;
+	                    else {
+	                        for (var i = 0; i < event.changedTouches.length; i++) {
+	                            if (event.changedTouches[i].identifier === _this.identifier) {
+	                                _this._dragListener(event.changedTouches[i]);
+	                                break;
+	                            }
 	                        }
 	                    }
 	                }
@@ -311,22 +319,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // Store this eventlistener for removal later
 	        this._registeredEventListeners.push([
 	            events_1.default[mouseOrTouch].onTouchEnd, function (event) {
-	                if (util_1.isMouseEvent(event)) {
-	                    _this.identifier = undefined;
-	                    _this.isTouched = false;
-	                    _this.resetPosition();
-	                    _this.onAxisChange(_this._axes);
-	                    event.stopPropagation();
-	                }
-	                else {
-	                    for (var i = 0; i < event.changedTouches.length; i++) {
-	                        if (event.changedTouches[i].identifier === _this.identifier) {
-	                            _this.identifier = undefined;
-	                            _this.isTouched = false;
-	                            _this.resetPosition();
+	                if (_this.isTouched) {
+	                    if (util_1.isMouseEvent(event)) {
+	                        _this.identifier = undefined;
+	                        _this.isTouched = false;
+	                        _this.resetPosition();
+	                        if (_this.onAxisChange)
 	                            _this.onAxisChange(_this._axes);
-	                            event.stopPropagation();
-	                            break;
+	                        event.stopPropagation();
+	                    }
+	                    else {
+	                        for (var i = 0; i < event.changedTouches.length; i++) {
+	                            if (event.changedTouches[i].identifier === _this.identifier) {
+	                                _this.identifier = undefined;
+	                                _this.isTouched = false;
+	                                _this.resetPosition();
+	                                if (_this.onAxisChange)
+	                                    _this.onAxisChange(_this._axes);
+	                                event.stopPropagation();
+	                                break;
+	                            }
 	                        }
 	                    }
 	                }
@@ -490,12 +502,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._axes.x /= this._options.wellRadius;
 	            this._axes.y /= this._options.wellRadius;
 	        }
-	        if (this.onTouchMove) {
+	        if (this.onTouchMove)
 	            this.onTouchMove(this._axes);
-	        }
-	        if (this.onAxisChange) {
+	        if (this.onAxisChange)
 	            this.onAxisChange(this._axes);
-	        }
 	    },
 	    x: function (event) {
 	        transformManager_1.transformManager.mapPositionToPoint(this._axes, event.clientX, event.clientY);
@@ -512,12 +522,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._axes.x /= this._options.wellRadius;
 	            this._axes.y = 0;
 	        }
-	        if (this.onTouchMove) {
+	        if (this.onTouchMove)
 	            this.onTouchMove(this._axes);
-	        }
-	        if (this.onAxisChange) {
+	        if (this.onAxisChange)
 	            this.onAxisChange(this._axes);
-	        }
 	    },
 	    y: function dragListenerY(event) {
 	        transformManager_1.transformManager.mapPositionToPoint(this._axes, event.clientX, event.clientY);
@@ -534,12 +542,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._axes.x = 0;
 	            this._axes.y /= this._options.wellRadius;
 	        }
-	        if (this.onTouchMove) {
+	        if (this.onTouchMove)
 	            this.onTouchMove(this._axes);
-	        }
-	        if (this.onAxisChange) {
+	        if (this.onAxisChange)
 	            this.onAxisChange(this._axes);
-	        }
 	    }
 	};
 	Object.defineProperty(exports, "__esModule", { value: true });
