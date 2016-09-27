@@ -36,10 +36,8 @@ export class StickArea extends GeneralController implements IController {
 
     protected _options: IStickAreaOptions = {
         debug: false,
-
         mouse: true,
         touch: true,
-
         axes: 'xy',
         deadZone: 0, // TODO: Implement deadZone
         nub: null,

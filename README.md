@@ -57,7 +57,7 @@ stick.onAxisChange = function (axes){
 ```
 
 ## API
-### PixiStick.Stick
+### PixiStick.StickController
 > constructor(x, y, options)
 > * x: number
 > * y: number
@@ -66,9 +66,9 @@ stick.onAxisChange = function (axes){
 ```js
 default options 
  {
-    touch: true,      // responds to touch events?
-    mouse: true,      // responds to mouse events?
-    axes: 'xy',       // which axes are supported? 'xy', 'x', or 'y'
+    touch: true,      // Responds to touch events?
+    mouse: true,      // Responds to mouse events?
+    axes: 'xy',       // Which axes are supported? 'xy', 'x', or 'y'
     deadZone: 0,      // *UNIMPLEMENTED* Minimum axial output *UNIMPLEMENTED*
     nub: null,        // PIXI.Sprite object to use as the nub
     nubSize: 0.3,     // Size of the nub (0.3 mean the nub is %30 the diamater of the well)
@@ -76,6 +76,30 @@ default options
     wellRadius: 50,   // Radius of the well in pixels
 };
 ```
+
+### PixiStick.StickAreaController
+> constructor(x, y, width, height, options)
+> * x: number
+> * y: number
+> * width: number
+> * height: number
+> * options : object
+
+```js
+default options 
+ {
+    debug: false,     // Make the StickArea visible?
+    touch: true,      // Responds to touch events?
+    mouse: true,      // Responds to mouse events?
+    axes: 'xy',       // Which axes are supported? 'xy', 'x', or 'y'
+    deadZone: 0,      // *UNIMPLEMENTED* Minimum axial output *UNIMPLEMENTED*
+    nub: null,        // PIXI.Sprite object to use as the nub
+    nubSize: 0.3,     // Size of the nub (0.3 mean the nub is %30 the diamater of the well)
+    well: null,       // PIXI.Sprite object to use as the well
+    wellRadius: 50,   // Radius of the well in pixels
+};
+```
+
 
 
 
@@ -89,10 +113,10 @@ default options
 [StickArea Example](http://snrogers.github.com/pixi-stick/examples/example-stickArea.html)
 
 
-## Bugs
-* [Mouse, Stick-Example] mousedown anywhere except rightStick => leftStick is now receiving touchdrag events
-
-
 ## TODO
 * Implement onTap events
+* Implement deadzone
 * Improve API documentation
+* Redo Webpack config
+
+
