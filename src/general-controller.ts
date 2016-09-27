@@ -17,13 +17,13 @@ import { dragListener } from './drag-listener';
 /****************************/
 /*** The Stick Controller ***/
 /****************************/
-export class GeneralController extends PIXI.Container implements IController {
+export abstract class GeneralController extends PIXI.Container implements IController {
 
-    private _id: number;
+    protected _id: number;
     get id() { return this._id; }
     set id(value: number) { if (!this._id) { this._id = value; } else { throw new Error('id is readonly'); } }
 
-    private _options: IStickOptions = {
+    protected _options: IStickOptions = {
         touch: true,
         mouse: true,
 
@@ -35,8 +35,8 @@ export class GeneralController extends PIXI.Container implements IController {
         wellRadius: 50,
     };
 
-    private _joystick: Joystick;
-    private _dragListener: (event: Touch | MouseEvent) => void;
+    protected _joystick: Joystick;
+    protected _dragListener: (event: Touch | MouseEvent) => void;
 
     /** _axes is used as temporary storage for coordinates while they are being transformed.
      *  Without _axes, we would either need to either:
@@ -46,13 +46,12 @@ export class GeneralController extends PIXI.Container implements IController {
      *  3) Assign the localPosition back to the event.data, risking issues where we might accidentally perform
      *     the global -> local transformation multiple times
      */
-    private _axes: PIXI.Point;
+    protected _axes: PIXI.Point;
     /** Keeps track of eventListeners so they can be removed from the window on dispose() */
-    private _registeredEventListeners: [string, (event: TouchEvent | MouseEvent) => void][];
+    protected _registeredEventListeners: [string, (event: TouchEvent | MouseEvent) => void][];
 
     public isTouched: boolean = false;
     public identifier: number;
-
 
 
     /**************/
@@ -103,10 +102,16 @@ export class GeneralController extends PIXI.Container implements IController {
         if (this._options.touch) this._initEvents('touch');
     }
 
-    private _init() {
-        this._joystick = new Joystick(0, 0, this._options);
-        this.addChild(this._joystick);
+    protected abstract _init(): void;
+
+    protected abstract _initEvents(mouseOrTouch: string): void;
+
+    /** Adds a listener to the window and keeps a reference to it so the listener can be removed via dispose() */
+    protected _addWindowListener(eventString: string, func: (event: TouchEvent | MouseEvent) => void) {
+        this._registeredEventListeners.push([eventString, func]);
+        window.addEventListener(eventString, func);
     }
+
 
     /**
      * TouchStart is fired by the PIXI InteractionManager, but because InteractionManager.processInteractive
@@ -116,33 +121,9 @@ export class GeneralController extends PIXI.Container implements IController {
      * TouchStare so the StickController will not receive the TouchEnd event from the PIXI event system if the 
      * user's finger is not over the StickController when they release)
      **/
-    private _initEvents(mouseOrTouch: string) {
-        console.log(events[mouseOrTouch]);
 
-        // Touch Start
-        this.on(events[mouseOrTouch].onTouchStart, (event: PIXI.interaction.InteractionEvent) => {
-        });
 
-        // Touch Drag
-        // Store this eventlistener for removal later
-        if (!this._dragListener) this._dragListener = dragListener[this._options.axes];
-        this._addWindowListener(events[mouseOrTouch].onTouchMove, (event: TouchEvent | MouseEvent) => {
-        });
-
-        // Touch End
-        // Store this eventlistener for removal later
-        this._addWindowListener(
-            events[mouseOrTouch].onTouchEnd, (event: TouchEvent | MouseEvent) => {
-            });
-    }
-
-    /** Adds a listener to the window and keeps a reference to it so the listener can be removed via dispose() */
-    private _addWindowListener(eventString: string, func: (event: TouchEvent | MouseEvent) => void) {
-        this._registeredEventListeners.push([eventString, func]);
-        window.addEventListener(eventString, func);
-    }
-
-    private _processTouchStart(event: PIXI.interaction.InteractionEvent) {
+    protected _processTouchStart(event: PIXI.interaction.InteractionEvent) {
         this.identifier = event.data.identifier;
         this.isTouched = true;
 
@@ -153,23 +134,25 @@ export class GeneralController extends PIXI.Container implements IController {
         };
 
         if (this.onTouchStart) this.onTouchStart(this._axes);
-        event.stopPropagation();
+        return true;
     }
 
-    private _processTouchMove(event: TouchEvent | MouseEvent) {
+    protected _processTouchMove(event: TouchEvent | MouseEvent) {
         if (isMouseEvent(event)) {
             if (this.isTouched) this._dragListener(event);
+            return true;
         } else {
             for (let i = 0; i < event.changedTouches.length; i++) {
                 if (event.changedTouches[i].identifier === this.identifier) {
                     this._dragListener(event.changedTouches[i]);
-                    break;
+                    return true;
                 }
             }
         }
+        return false;
     }
 
-    private _processTouchEnd(event: TouchEvent | MouseEvent) {
+    protected _processTouchEnd(event: TouchEvent | MouseEvent) {
         if (isMouseEvent(event)) { // if it's a mouseEvent
             this.identifier = undefined;
             this.isTouched = false;
@@ -177,6 +160,7 @@ export class GeneralController extends PIXI.Container implements IController {
             this.onAxisChange(this._axes);
 
             event.stopPropagation();
+            return true;
         } else { // Else if it's a touchEvent
             for (let i = 0; i < event.changedTouches.length; i++) {
                 if (event.changedTouches[i].identifier === this.identifier) {
@@ -186,10 +170,11 @@ export class GeneralController extends PIXI.Container implements IController {
                     this.onAxisChange(this._axes);
 
                     event.stopPropagation();
-                    break;
+                    return true;
                 }
             }
         }
+        return false;
     }
 
 

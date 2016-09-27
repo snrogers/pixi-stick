@@ -13,96 +13,24 @@ import { transformManager } from'./transformManager.ts';
 
 import { dragListener } from './drag-listener';
 
+import { GeneralController } from './general-controller';
+
 
 /****************************/
 /*** The Stick Controller ***/
 /****************************/
-export class StickController extends PIXI.Container implements IController {
-
-    private _id: number;
-    get id() { return this._id; }
-    set id(value: number) { if (!this._id) { this._id = value; } else { throw new Error('id is readonly'); } }
-
-    private _options: IStickOptions = {
-        touch: true,
-        mouse: true,
-
-        axes: 'xy',
-        deadZone: 0, // TODO: Implement deadZone
-        nub: null,
-        nubSize: 0.3,
-        well: null,
-        wellRadius: 50,
-    };
-
-    private _joystick: Joystick;
-    private _dragListener: (event: Touch | MouseEvent) => void;
-
-    /** _axes is used as temporary storage for coordinates while they are being transformed.
-     *  Without _axes, we would either need to either:
-     * 
-     *  1) Perform the same event.data.getLocalPosition() call multiple times per event (esp. dragListeners)
-     *  2) Accumulate garbage by creating temporary PIXI.Point instances  (esp. dragListeners)
-     *  3) Assign the localPosition back to the event.data, risking issues where we might accidentally perform
-     *     the global -> local transformation multiple times
-     */
-    private _axes: PIXI.Point;
-    /** Keeps track of eventListeners so they can be removed from the window on dispose() */
-    private _registeredEventListeners: [string, (event: TouchEvent | MouseEvent) => void][];
-
-    public isTouched: boolean = false;
-    public identifier: number;
-
-
-
-    /**************/
-    /*** Events ***/
-    /**************/
-
-    /** Fires when the stick is touched */
-    public onTouchStart: (axes: PIXI.Point) => void;
-
-    /** Fires when the touch moves */
-    public onTouchMove: (axes: PIXI.Point) => void;
-
-    /** Fires when the stick is no longer touched */
-    public onTouchEnd: (axes: PIXI.Point) => void;
-
-    /** Fires when the stick is tapped (Configurable. See IStickOptions) */
-    public onTap: (axes: PIXI.Point) => void;
-
-    /** Fires ANY TIME any axis changes */
-    public onAxisChange: (axes: PIXI.Point) => void;
-
+export class StickController extends GeneralController {
 
     /*******************/
     /*** Constructor ***/
     /*******************/
     constructor(x: number, y: number, options?: IStickOptions) {
-        super();
+        super(x, y, options);
+    }
 
-        this._axes = new PIXI.Point(0, 0);
-        this._registeredEventListeners = [];
-
-        this.x = x;
-        this.y = y;
-
-
-        if (options) {
-            for (let prop in options) {
-                if (options.hasOwnProperty(prop)) {
-                    this._options[prop] = options[prop];
-                }
-            }
-        }
-
-        this.interactive = true;
-
+    protected _init() {
         this._joystick = new Joystick(0, 0, this._options); // ERR: x and y should be computed based on stick type, i.e. static/semi/dynamic
         this.addChild(this._joystick);
-
-        if (this._options.mouse) this._initEvents('mouse');
-        if (this._options.touch) this._initEvents('touch');
     }
 
     /**
@@ -113,93 +41,24 @@ export class StickController extends PIXI.Container implements IController {
      * TouchStare so the StickController will not receive the TouchEnd event from the PIXI event system if the 
      * user's finger is not over the StickController when they release)
      **/
-    private _initEvents(mouseOrTouch: string) {
+    protected _initEvents(mouseOrTouch: string) {
         // Touch Start
         this.on(events[mouseOrTouch].onTouchStart, (event: PIXI.interaction.InteractionEvent) => {
-            this.identifier = event.data.identifier;
-            this.isTouched = true;
-
-            if (isMouseEvent(event.data.originalEvent)) {
-                this._dragListener(<MouseEvent>event.data.originalEvent)
-            } else {
-                this._dragListener((<TouchEvent>event.data.originalEvent).changedTouches[event.data.identifier])
-            };
-
-            if (this.onTouchStart) this.onTouchStart(this._axes);
-            if (this.onAxisChange) this.onAxisChange(this._axes);
-
-            event.stopPropagation();
+            this._processTouchStart(event);
         });
 
-        // Touch Drag
-        // Store this eventlistener for removal later
+        // TouchMove
         if (!this._dragListener) this._dragListener = dragListener[this._options.axes];
-        this._registeredEventListeners.push([
-            events[mouseOrTouch].onTouchMove, (event: TouchEvent | MouseEvent) => {
-                if (this.isTouched) {
-                    if (isMouseEvent(event)) this._dragListener(event);
-                    else {
-                        for (let i = 0; i < event.changedTouches.length; i++) {
-                            if (event.changedTouches[i].identifier === this.identifier) {
-                                this._dragListener(event.changedTouches[i]);
-                                break;
-                            }
-                        }
-                    }
-                }
-
-            }
-        ])
-        // add the event listener to the window
-        window.addEventListener(events[mouseOrTouch].onTouchMove, this._registeredEventListeners[this._registeredEventListeners.length - 1][1]);
-
+        this._addWindowListener(events[mouseOrTouch].onTouchMove, (event: TouchEvent | MouseEvent) => {
+            this._processTouchMove(event);
+        });
 
         // Touch End
-        // Store this eventlistener for removal later
-        this._registeredEventListeners.push([
+        this._addWindowListener(
             events[mouseOrTouch].onTouchEnd, (event: TouchEvent | MouseEvent) => {
-                if (this.isTouched) {
-                    if (isMouseEvent(event)) { // if it's a mouseEvent
-                        this.identifier = undefined;
-                        this.isTouched = false;
-                        this.resetPosition();
-                        if (this.onAxisChange) this.onAxisChange(this._axes);
-
-                        event.stopPropagation();
-                    } else { // Else if it's a touchEvent
-                        for (let i = 0; i < event.changedTouches.length; i++) {
-                            if (event.changedTouches[i].identifier === this.identifier) {
-                                this.identifier = undefined;
-                                this.isTouched = false;
-                                this.resetPosition();
-                                if (this.onAxisChange) this.onAxisChange(this._axes);
-
-                                event.stopPropagation();
-                                break;
-                            }
-                        }
-                    }
-                }
-            }]);
-        // add the event listener to the window
-        window.addEventListener(events[mouseOrTouch].onTouchEnd, this._registeredEventListeners[this._registeredEventListeners.length - 1][1]);
-    }
-
-    // Removes all window eventlisteners that this instance has registered
-    public dispose() {
-        this._registeredEventListeners.forEach(
-            (arr: [string, (event: TouchEvent | MouseEvent) => void]) => {
-                window.removeEventListener(arr[0], arr[1]);
+                this._processTouchEnd(event);
             }
         );
-    }
-
-    public resetPosition() {
-        this._joystick.nub.x = 0;
-        this._joystick.nub.y = 0;
-
-        this._axes.x = 0;
-        this._axes.y = 0;
     }
 }
 

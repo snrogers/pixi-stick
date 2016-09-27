@@ -77,7 +77,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return Stick;
 	}(stick_controller_1.default));
 	exports.Stick = Stick;
-	var stick_area_1 = __webpack_require__(8);
+	var stick_area_1 = __webpack_require__(9);
 	exports.StickArea = stick_area_1.StickArea;
 	var transformManager_1 = __webpack_require__(7);
 	function init(renderer) { transformManager_1.transformManager.renderer = renderer; }
@@ -211,10 +211,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var util_1 = __webpack_require__(1);
 	var joystick_1 = __webpack_require__(4);
 	var events_1 = __webpack_require__(5);
 	var drag_listener_1 = __webpack_require__(6);
+	var general_controller_1 = __webpack_require__(8);
 	/****************************/
 	/*** The Stick Controller ***/
 	/****************************/
@@ -224,48 +224,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /*** Constructor ***/
 	    /*******************/
 	    function StickController(x, y, options) {
-	        _super.call(this);
-	        this._options = {
-	            touch: true,
-	            mouse: true,
-	            axes: 'xy',
-	            deadZone: 0,
-	            nub: null,
-	            nubSize: 0.3,
-	            well: null,
-	            wellRadius: 50,
-	        };
-	        this.isTouched = false;
-	        this._axes = new PIXI.Point(0, 0);
-	        this._registeredEventListeners = [];
-	        this.x = x;
-	        this.y = y;
-	        if (options) {
-	            for (var prop in options) {
-	                if (options.hasOwnProperty(prop)) {
-	                    this._options[prop] = options[prop];
-	                }
-	            }
-	        }
-	        this.interactive = true;
+	        _super.call(this, x, y, options);
+	    }
+	    StickController.prototype._init = function () {
 	        this._joystick = new joystick_1.default(0, 0, this._options); // ERR: x and y should be computed based on stick type, i.e. static/semi/dynamic
 	        this.addChild(this._joystick);
-	        if (this._options.mouse)
-	            this._initEvents('mouse');
-	        if (this._options.touch)
-	            this._initEvents('touch');
-	    }
-	    Object.defineProperty(StickController.prototype, "id", {
-	        get: function () { return this._id; },
-	        set: function (value) { if (!this._id) {
-	            this._id = value;
-	        }
-	        else {
-	            throw new Error('id is readonly');
-	        } },
-	        enumerable: true,
-	        configurable: true
-	    });
+	    };
 	    /**
 	     * TouchStart is fired by the PIXI InteractionManager, but because InteractionManager.processInteractive
 	     * does not keep a record of the recipient of TouchStart for a given touch, the StickController has its own
@@ -278,88 +242,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var _this = this;
 	        // Touch Start
 	        this.on(events_1.default[mouseOrTouch].onTouchStart, function (event) {
-	            _this.identifier = event.data.identifier;
-	            _this.isTouched = true;
-	            if (util_1.isMouseEvent(event.data.originalEvent)) {
-	                _this._dragListener(event.data.originalEvent);
-	            }
-	            else {
-	                _this._dragListener(event.data.originalEvent.changedTouches[event.data.identifier]);
-	            }
-	            ;
-	            if (_this.onTouchStart)
-	                _this.onTouchStart(_this._axes);
-	            if (_this.onAxisChange)
-	                _this.onAxisChange(_this._axes);
-	            event.stopPropagation();
+	            _this._processTouchStart(event);
 	        });
-	        // Touch Drag
-	        // Store this eventlistener for removal later
+	        // TouchMove
 	        if (!this._dragListener)
 	            this._dragListener = drag_listener_1.dragListener[this._options.axes];
-	        this._registeredEventListeners.push([
-	            events_1.default[mouseOrTouch].onTouchMove, function (event) {
-	                if (_this.isTouched) {
-	                    if (util_1.isMouseEvent(event))
-	                        _this._dragListener(event);
-	                    else {
-	                        for (var i = 0; i < event.changedTouches.length; i++) {
-	                            if (event.changedTouches[i].identifier === _this.identifier) {
-	                                _this._dragListener(event.changedTouches[i]);
-	                                break;
-	                            }
-	                        }
-	                    }
-	                }
-	            }
-	        ]);
-	        // add the event listener to the window
-	        window.addEventListener(events_1.default[mouseOrTouch].onTouchMove, this._registeredEventListeners[this._registeredEventListeners.length - 1][1]);
+	        this._addWindowListener(events_1.default[mouseOrTouch].onTouchMove, function (event) {
+	            _this._processTouchMove(event);
+	        });
 	        // Touch End
-	        // Store this eventlistener for removal later
-	        this._registeredEventListeners.push([
-	            events_1.default[mouseOrTouch].onTouchEnd, function (event) {
-	                if (_this.isTouched) {
-	                    if (util_1.isMouseEvent(event)) {
-	                        _this.identifier = undefined;
-	                        _this.isTouched = false;
-	                        _this.resetPosition();
-	                        if (_this.onAxisChange)
-	                            _this.onAxisChange(_this._axes);
-	                        event.stopPropagation();
-	                    }
-	                    else {
-	                        for (var i = 0; i < event.changedTouches.length; i++) {
-	                            if (event.changedTouches[i].identifier === _this.identifier) {
-	                                _this.identifier = undefined;
-	                                _this.isTouched = false;
-	                                _this.resetPosition();
-	                                if (_this.onAxisChange)
-	                                    _this.onAxisChange(_this._axes);
-	                                event.stopPropagation();
-	                                break;
-	                            }
-	                        }
-	                    }
-	                }
-	            }]);
-	        // add the event listener to the window
-	        window.addEventListener(events_1.default[mouseOrTouch].onTouchEnd, this._registeredEventListeners[this._registeredEventListeners.length - 1][1]);
-	    };
-	    // Removes all window eventlisteners that this instance has registered
-	    StickController.prototype.dispose = function () {
-	        this._registeredEventListeners.forEach(function (arr) {
-	            window.removeEventListener(arr[0], arr[1]);
+	        this._addWindowListener(events_1.default[mouseOrTouch].onTouchEnd, function (event) {
+	            _this._processTouchEnd(event);
 	        });
 	    };
-	    StickController.prototype.resetPosition = function () {
-	        this._joystick.nub.x = 0;
-	        this._joystick.nub.y = 0;
-	        this._axes.x = 0;
-	        this._axes.y = 0;
-	    };
 	    return StickController;
-	}(PIXI.Container));
+	}(general_controller_1.GeneralController));
 	exports.StickController = StickController;
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = StickController;
@@ -403,7 +300,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.well.alpha = this._options.opacity;
 	            this.well.width = this._options.wellRadius * 2;
 	            this.well.height = this._options.wellRadius * 2;
-	            // TODO: Anchor only works on Sprite, not Container. Should add a wellAnchor property to deal with this
 	            this.well.anchor.x = 0.5;
 	            this.well.anchor.y = 0.5;
 	        }
@@ -436,7 +332,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.nub.alpha = this._options.opacity;
 	            this.nub.width = this._options.wellRadius * this._options.nubSize * 2;
 	            this.nub.height = this._options.wellRadius * this._options.nubSize * 2;
-	            // TODO: Anchor only works on Sprite, not Container. Should add a nubAnchor property to deal with this
 	            this.nub.anchor.x = 0.5;
 	            this.nub.anchor.y = 0.5;
 	        }
@@ -581,107 +476,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	var util_1 = __webpack_require__(1);
-	var joystick_1 = __webpack_require__(4);
-	var events_1 = __webpack_require__(5);
-	var debug_1 = __webpack_require__(2);
-	var drag_listener_1 = __webpack_require__(6);
-	function generateColor() {
-	    var color = 0;
-	    var primary = Math.floor(Math.random() * 3);
-	    for (var i = 0; i < 3; i++) {
-	        color = color << 8;
-	        color += 155 + Math.floor(Math.random() * 100);
-	    }
-	    return color;
-	}
-	/***********************/
-	/*** Event Listeners ***/
-	/***********************/
-	function dragListenerXY(event) {
-	    if (event.data.identifier != this.identifier)
-	        return;
-	    if (this.isTouched) {
-	        this._joystick.toLocal(event.data.global, null, this._axes);
-	        if (util_1.magnitude(this._axes) > this._options.wellRadius) {
-	            util_1.unitVector(this._axes, this._axes);
-	            this._joystick.nub.x = this._axes.x * this._options.wellRadius;
-	            this._joystick.nub.y = this._axes.y * this._options.wellRadius;
-	        }
-	        else {
-	            this._joystick.nub.x = this._axes.x;
-	            this._joystick.nub.y = this._axes.y;
-	            this._axes.x /= this._options.wellRadius;
-	            this._axes.y /= this._options.wellRadius;
-	        }
-	    }
-	    else {
-	        this._axes.x = 0;
-	        this._axes.y = 0;
-	    }
-	    if (this.onTouchMove) {
-	        this.onTouchMove(this._axes);
-	    }
-	    if (this.onAxisChange) {
-	        this.onAxisChange(this._axes);
-	    }
-	}
-	function dragListenerX(event) {
-	    if (!this.isTouched) {
-	        this._axes.x = 0;
-	        this._axes.y = 0;
-	        return;
-	    }
-	    this._touchData.getLocalPosition(this, this._axes);
-	    if (Math.abs(this._axes.x) > this._options.wellRadius) {
-	        this._axes.x = util_1.sign(this._axes.x);
-	        this._axes.y = 0;
-	        this._joystick.nub.x = this._axes.x * this._options.wellRadius;
-	        this._joystick.nub.y = 0;
-	    }
-	    else {
-	        this._joystick.nub.x = this._axes.x;
-	        this._joystick.nub.y = 0;
-	        this._axes.x /= this._options.wellRadius;
-	        this._axes.y = 0;
-	    }
-	    if (this.onTouchMove) {
-	        this.onTouchMove({ position: this._axes }); // GARBAGE
-	    }
-	}
-	function dragListenerY(event) {
-	    if (!this.isTouched) {
-	        this._axes.x = 0;
-	        this._axes.y = 0;
-	        return;
-	    }
-	    this._axes.copy(this._touchData.getLocalPosition(this));
-	    if (Math.abs(this._axes.y) > this._options.wellRadius) {
-	        this._axes.x = 0;
-	        this._axes.y = util_1.sign(this._axes.y);
-	        this._joystick.nub.x = 0;
-	        this._joystick.nub.y = this._axes.y * this._options.wellRadius;
-	    }
-	    else {
-	        this._joystick.nub.x = 0;
-	        this._joystick.nub.y = this._axes.y;
-	        this._axes.x = 0;
-	        this._axes.y /= this._options.wellRadius;
-	    }
-	    if (this.onTouchMove) {
-	        this.onTouchMove(this._axes);
-	    }
-	}
-	var StickArea = (function (_super) {
-	    __extends(StickArea, _super);
+	/****************************/
+	/*** The Stick Controller ***/
+	/****************************/
+	var GeneralController = (function (_super) {
+	    __extends(GeneralController, _super);
 	    /*******************/
 	    /*** Constructor ***/
 	    /*******************/
-	    function StickArea(x, y, width, height, options) {
+	    function GeneralController(x, y, options) {
 	        _super.call(this);
 	        this._options = {
-	            debug: false,
-	            mouse: true,
 	            touch: true,
+	            mouse: true,
 	            axes: 'xy',
 	            deadZone: 0,
 	            nub: null,
@@ -702,14 +509,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        }
 	        this.interactive = true;
-	        this._initGraphics(width, height);
-	        this._joystick = new joystick_1.default(0, 0, this._options);
+	        this._init();
 	        if (this._options.mouse)
 	            this._initEvents('mouse');
 	        if (this._options.touch)
 	            this._initEvents('touch');
 	    }
-	    Object.defineProperty(StickArea.prototype, "id", {
+	    Object.defineProperty(GeneralController.prototype, "id", {
 	        get: function () { return this._id; },
 	        set: function (value) { if (!this._id) {
 	            this._id = value;
@@ -720,98 +526,178 @@ return /******/ (function(modules) { // webpackBootstrap
 	        enumerable: true,
 	        configurable: true
 	    });
-	    StickArea.prototype._initGraphics = function (width, height) {
-	        this.beginFill(generateColor(), this._options.debug ? 0.7 : 0);
-	        this.drawRect(0, 0, width, height);
-	        this.endFill();
+	    /** Adds a listener to the window and keeps a reference to it so the listener can be removed via dispose() */
+	    GeneralController.prototype._addWindowListener = function (eventString, func) {
+	        this._registeredEventListeners.push([eventString, func]);
+	        window.addEventListener(eventString, func);
 	    };
-	    StickArea.prototype._initEvents = function (mouseOrTouch) {
-	        var _this = this;
-	        // Touch Start
-	        this.on(events_1.default[mouseOrTouch].onTouchStart, function (event) {
-	            _this.identifier = event.data.identifier;
-	            _this._spawnStick(event.data.getLocalPosition(_this));
-	            _this.isTouched = true;
-	            if (_this.onTouchStart)
-	                _this.onTouchStart(_this._axes);
-	            event.stopPropagation();
-	        });
-	        // Touch Drag
-	        // Store this eventlistener for removal later
-	        // TODO: HOLY HELL DO I NOT NEED TO BIND DRAGLISTNERE?!?!?!!?!??!?
-	        if (!this._dragListener)
-	            this._dragListener = drag_listener_1.dragListener[this._options.axes];
-	        this._registeredEventListeners.push([
-	            events_1.default[mouseOrTouch].onTouchMove, function (event) {
-	                if (util_1.isMouseEvent(event)) {
-	                    if (_this.isTouched)
-	                        _this._dragListener(event);
-	                }
-	                else {
-	                    for (var i = 0; i < event.changedTouches.length; i++) {
-	                        if (event.changedTouches[i].identifier === _this.identifier) {
-	                            _this._dragListener(event.changedTouches[i]);
-	                            break;
-	                        }
-	                    }
+	    /**
+	     * TouchStart is fired by the PIXI InteractionManager, but because InteractionManager.processInteractive
+	     * does not keep a record of the recipient of TouchStart for a given touch, the StickController has its own
+	     * listener on the window to ensure it is able to catch the TouchEnd event from the window (InteractionManager
+	     * sends the TouchEnd event to whichever object the TouchEnd occurs upon instead of the original recipient of
+	     * TouchStare so the StickController will not receive the TouchEnd event from the PIXI event system if the
+	     * user's finger is not over the StickController when they release)
+	     **/
+	    GeneralController.prototype._processTouchStart = function (event) {
+	        this.identifier = event.data.identifier;
+	        this.isTouched = true;
+	        if (util_1.isMouseEvent(event.data.originalEvent)) {
+	            this._dragListener(event.data.originalEvent);
+	        }
+	        else {
+	            this._dragListener(event.data.originalEvent.changedTouches[event.data.identifier]);
+	        }
+	        ;
+	        if (this.onTouchStart)
+	            this.onTouchStart(this._axes);
+	        return true;
+	    };
+	    GeneralController.prototype._processTouchMove = function (event) {
+	        if (util_1.isMouseEvent(event)) {
+	            if (this.isTouched)
+	                this._dragListener(event);
+	            return true;
+	        }
+	        else {
+	            for (var i = 0; i < event.changedTouches.length; i++) {
+	                if (event.changedTouches[i].identifier === this.identifier) {
+	                    this._dragListener(event.changedTouches[i]);
+	                    return true;
 	                }
 	            }
-	        ]);
-	        // add the event listener to the window
-	        window.addEventListener(events_1.default[mouseOrTouch].onTouchMove, this._registeredEventListeners[this._registeredEventListeners.length - 1][1]);
-	        // Touch End
-	        // Store this eventlistener for removal later
-	        this._registeredEventListeners.push([
-	            events_1.default[mouseOrTouch].onTouchEnd, function (event) {
-	                if (util_1.isMouseEvent(event)) {
-	                    _this.identifier = undefined;
-	                    _this.isTouched = false;
-	                    _this.resetPosition();
-	                    _this.onAxisChange(_this._axes);
-	                    _this._despawnStick();
+	        }
+	        return false;
+	    };
+	    GeneralController.prototype._processTouchEnd = function (event) {
+	        if (util_1.isMouseEvent(event)) {
+	            this.identifier = undefined;
+	            this.isTouched = false;
+	            this.resetPosition();
+	            this.onAxisChange(this._axes);
+	            event.stopPropagation();
+	            return true;
+	        }
+	        else {
+	            for (var i = 0; i < event.changedTouches.length; i++) {
+	                if (event.changedTouches[i].identifier === this.identifier) {
+	                    this.identifier = undefined;
+	                    this.isTouched = false;
+	                    this.resetPosition();
+	                    this.onAxisChange(this._axes);
 	                    event.stopPropagation();
+	                    return true;
 	                }
-	                else {
-	                    for (var i = 0; i < event.changedTouches.length; i++) {
-	                        if (event.changedTouches[i].identifier === _this.identifier) {
-	                            _this.identifier = undefined;
-	                            _this.isTouched = false;
-	                            _this.resetPosition();
-	                            _this.onAxisChange(_this._axes);
-	                            _this._despawnStick();
-	                            event.stopPropagation();
-	                            break;
-	                        }
-	                    }
-	                }
-	            }]);
-	        // add the event listener to the window
-	        window.addEventListener(events_1.default[mouseOrTouch].onTouchEnd, this._registeredEventListeners[this._registeredEventListeners.length - 1][1]);
+	            }
+	        }
+	        return false;
 	    };
-	    StickArea.prototype._despawnStick = function () {
-	        debug_1.default.log('despawning stick', this);
-	        this.removeChild(this._joystick);
-	    };
-	    StickArea.prototype.dispose = function () {
+	    // Removes all window eventlisteners that this instance has registered
+	    GeneralController.prototype.dispose = function () {
 	        this._registeredEventListeners.forEach(function (arr) {
 	            window.removeEventListener(arr[0], arr[1]);
 	        });
 	    };
-	    StickArea.prototype.resetPosition = function () {
+	    GeneralController.prototype.resetPosition = function () {
 	        this._joystick.nub.x = 0;
 	        this._joystick.nub.y = 0;
 	        this._axes.x = 0;
 	        this._axes.y = 0;
 	    };
+	    return GeneralController;
+	}(PIXI.Container));
+	exports.GeneralController = GeneralController;
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = GeneralController;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var joystick_1 = __webpack_require__(4);
+	var events_1 = __webpack_require__(5);
+	var drag_listener_1 = __webpack_require__(6);
+	var general_controller_1 = __webpack_require__(8);
+	function generateColor() {
+	    var color = 0;
+	    var primary = Math.floor(Math.random() * 3);
+	    for (var i = 0; i < 3; i++) {
+	        color = color << 8;
+	        color += 155 + Math.floor(Math.random() * 100);
+	    }
+	    return color;
+	}
+	var StickArea = (function (_super) {
+	    __extends(StickArea, _super);
+	    /*******************/
+	    /*** Constructor ***/
+	    /*******************/
+	    function StickArea(x, y, width, height, options) {
+	        _super.call(this, x, y, options);
+	        this._options = {
+	            debug: false,
+	            mouse: true,
+	            touch: true,
+	            axes: 'xy',
+	            deadZone: 0,
+	            nub: null,
+	            nubSize: 0.3,
+	            well: null,
+	            wellRadius: 50,
+	        };
+	        if (options) {
+	            for (var prop in options) {
+	                if (options.hasOwnProperty(prop)) {
+	                    this._options[prop] = options[prop];
+	                }
+	            }
+	        }
+	        this._area = new PIXI.Graphics();
+	        this._area.beginFill(generateColor(), this._options.debug ? 0.7 : 0);
+	        this._area.drawRect(0, 0, width, height);
+	        this._area.endFill();
+	        this.addChild(this._area);
+	    }
+	    StickArea.prototype._init = function () {
+	        this._joystick = new joystick_1.default(0, 0, this._options);
+	    };
+	    StickArea.prototype._initEvents = function (mouseOrTouch) {
+	        var _this = this;
+	        // Touch Start
+	        this.on(events_1.default[mouseOrTouch].onTouchStart, function (event) {
+	            _this._spawnStick(event.data.getLocalPosition(_this));
+	            _this._processTouchStart(event);
+	        });
+	        // TouchMove
+	        if (!this._dragListener)
+	            this._dragListener = drag_listener_1.dragListener[this._options.axes];
+	        this._addWindowListener(events_1.default[mouseOrTouch].onTouchMove, function (event) {
+	            _this._processTouchMove(event);
+	        });
+	        // Touch End
+	        this._addWindowListener(events_1.default[mouseOrTouch].onTouchEnd, function (event) {
+	            if (_this._processTouchEnd(event)) {
+	                _this._despawnStick();
+	            }
+	        });
+	    };
+	    StickArea.prototype._despawnStick = function () {
+	        this._area.removeChild(this._joystick);
+	    };
 	    StickArea.prototype._spawnStick = function (position) {
-	        debug_1.default.log('spawning stick at [' + position.x + ',' + position.y + ']', this);
-	        this.addChild(this._joystick);
+	        this._area.addChild(this._joystick);
 	        this._joystick.x = position.x;
 	        this._joystick.y = position.y;
-	        this._joystick.isTouched = true;
 	    };
 	    return StickArea;
-	}(PIXI.Graphics));
+	}(general_controller_1.GeneralController));
 	exports.StickArea = StickArea;
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = StickArea;

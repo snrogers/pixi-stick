@@ -14,8 +14,8 @@ export class Joystick extends PIXI.Container {
         opacity: 0.25
     };
 
-    public well: PIXI.Container;
-    public nub: PIXI.Container;
+    public well: PIXI.Sprite | PIXI.Graphics;
+    public nub: PIXI.Sprite | PIXI.Graphics;
 
     constructor(x: number, y: number, options: IStickOptions) {
         super();
@@ -41,9 +41,8 @@ export class Joystick extends PIXI.Container {
             this.well.width = this._options.wellRadius * 2;
             this.well.height = this._options.wellRadius * 2;
 
-            // TODO: Anchor only works on Sprite, not Container. Should add a wellAnchor property to deal with this
-            this.well.anchor.x = 0.5;
-            this.well.anchor.y = 0.5;
+            (<PIXI.Sprite>this.well).anchor.x = 0.5;
+            (<PIXI.Sprite>this.well).anchor.y = 0.5;
 
         } else {
             this.well = new PIXI.Graphics();
@@ -89,9 +88,8 @@ export class Joystick extends PIXI.Container {
             this.nub.width = this._options.wellRadius * this._options.nubSize * 2;
             this.nub.height = this._options.wellRadius * this._options.nubSize * 2;
 
-            // TODO: Anchor only works on Sprite, not Container. Should add a nubAnchor property to deal with this
-            this.nub.anchor.x = 0.5;
-            this.nub.anchor.y = 0.5;
+            (<PIXI.Sprite>this.nub).anchor.x = 0.5;
+            (<PIXI.Sprite>this.nub).anchor.y = 0.5;
         } else {
             this.nub = new PIXI.Graphics();
             (<PIXI.Graphics>this.nub).beginFill(0xffffff, this._options.opacity);

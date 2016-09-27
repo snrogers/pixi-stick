@@ -10,10 +10,10 @@ export interface IStickOptions {
     deadZone?: number; // TODO: Implement deadZone
     opacity?: number;
 
-    nub?: PIXI.Container;
+    nub?: PIXI.Sprite;
     nubSize?: number;
 
-    well?: PIXI.Container;
+    well?: PIXI.Sprite;
     wellRadius?: number;
 }
 
