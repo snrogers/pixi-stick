@@ -1,3 +1,4 @@
+import * as PIXI from 'pixi.js';
 
 /**
  * Provides a way to get at the InteractionManager.mapPositionToPoint() function from outside of the InteractionManager

@@ -1,13 +1,13 @@
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory();
+		module.exports = factory(require("PIXI"));
 	else if(typeof define === 'function' && define.amd)
-		define("PixiStick", [], factory);
+		define("PixiStick", ["PIXI"], factory);
 	else if(typeof exports === 'object')
-		exports["PixiStick"] = factory();
+		exports["PixiStick"] = factory(require("PIXI"));
 	else
-		root["PixiStick"] = factory();
-})(this, function() {
+		root["PixiStick"] = factory(root["PIXI"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE_3__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -55,30 +55,10 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var util_1 = __webpack_require__(1);
-	exports.magnitude = util_1.magnitude;
-	exports.unitVector = util_1.unitVector;
-	var debug_1 = __webpack_require__(2);
-	exports.debug = debug_1.debug;
-	// TODO: HUUUUUGE TODO: take node-uuid out of the bundle
-	var stick_controller_1 = __webpack_require__(3);
-	var Stick = (function (_super) {
-	    __extends(Stick, _super);
-	    function Stick(x, y, options) {
-	        if (options === void 0) { options = {}; }
-	        options.type = 'static';
-	        _super.call(this, x, y, options);
-	    }
-	    return Stick;
-	}(stick_controller_1.default));
-	exports.Stick = Stick;
+	var stick_controller_1 = __webpack_require__(1);
+	exports.StickController = stick_controller_1.StickController;
 	var stick_area_1 = __webpack_require__(9);
-	exports.StickArea = stick_area_1.StickArea;
+	exports.StickAreaController = stick_area_1.StickArea;
 	var transformManager_1 = __webpack_require__(7);
 	function init(renderer) { transformManager_1.transformManager.renderer = renderer; }
 	exports.init = init;
@@ -86,123 +66,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 1 */
-/***/ function(module, exports) {
-
-	"use strict";
-	function magnitude(vec) {
-	    return Math.sqrt((vec.x * vec.x) + (vec.y * vec.y));
-	}
-	exports.magnitude = magnitude;
-	function unitVector(vec, outVec) {
-	    outVec = outVec || new PIXI.Point();
-	    var mag = magnitude(vec);
-	    outVec.x = vec.x / mag;
-	    outVec.y = vec.y / mag;
-	    return outVec;
-	}
-	exports.unitVector = unitVector;
-	function sign(value) {
-	    return value ? (value < 0 ? -1 : 1) : null;
-	}
-	exports.sign = sign;
-	function isMouseEvent(event) {
-	    return event.button !== undefined;
-	}
-	exports.isMouseEvent = isMouseEvent;
-	function isTouchEvent(event) {
-	    return event.changedTouches !== undefined;
-	}
-	exports.isTouchEvent = isTouchEvent;
-	// export function computeTransformFromCanvas(canvas: HTMLCanvasElement, transform: PIXI.Matrix) {
-	//     let canvasStyle = getComputedStyle(canvas);
-	//     transform.a = Number(canvasStyle.width.slice(0, -2)) / canvas.width;
-	//     transform.b = 0;
-	//     transform.c = 0;
-	//     transform.d = Number(canvasStyle.height.slice(0, -2)) / canvas.height;
-	//     transform.tx = (!Number(canvasStyle.left.slice(0, -2))) ? 0 : Number(getComputedStyle(canvas).left.slice(0, -2));
-	//     transform.ty = (!Number(canvasStyle.top.slice(0, -2))) ? 0 : Number(getComputedStyle(canvas).top.slice(0, -2));
-	// } 
-
-
-/***/ },
-/* 2 */
-/***/ function(module, exports) {
-
-	"use strict";
-	var debug;
-	(function (debug) {
-	    debug.loggers = Object.create(null);
-	    debug.isActive = true;
-	    function log(value, logger) {
-	        if (!debug.isActive)
-	            return;
-	        if (logger) {
-	            window.console.debug('[' + logger.id + '] ' + value);
-	        }
-	        else {
-	            window.console.debug('value');
-	        }
-	    }
-	    debug.log = log;
-	    ;
-	    // TODO: LOGGERLOGGERLOGGERLOGGERLOGGER
-	    function id(logger, loggerClass) {
-	        if (!debug.isActive)
-	            return;
-	        if (!debug.loggers[loggerClass]) {
-	            debug.loggers[loggerClass] = Object.create(null);
-	            debug.loggers[loggerClass].currentIndex = 0;
-	        }
-	        debug.loggers[loggerClass][debug.loggers[loggerClass].currentIndex] = logger;
-	        return loggerClass + ' ' + debug.loggers[loggerClass].currentIndex++;
-	    }
-	    debug.id = id;
-	    ;
-	    function compare(left, right) {
-	        // First check if number of keys is identical. This is needed in case right has keys that left does not.
-	        if (Object.keys(left).length !== Object.keys(right).length) {
-	            console.log('Object.keys(left).length !== Object.keys(right).length');
-	            console.log(Object.keys(left).length + ' !== ' + Object.keys(right).length);
-	            return false;
-	        }
-	        for (var prop in left) {
-	            // Check if left has a key that right does not
-	            if (!right[prop]) {
-	                console.log('!right[prop]');
-	                console.log('prop === ' + prop);
-	                return false;
-	            }
-	            // If the left[prop] is a primitive, compare it to right[prop]
-	            if (typeof left[prop] === 'string' || typeof left[prop] === 'number') {
-	                if (left[prop] !== right[prop]) {
-	                    console.log('left[' + prop + '] !== right[' + prop + ']');
-	                    console.log(left[prop] + ' !== ' + right[prop]);
-	                    return false;
-	                }
-	                else {
-	                    continue;
-	                }
-	            }
-	            // if we've reached this point then left[prop] must be an object so lets see if right[prop] is also an object
-	            if (typeof right[prop] === 'string' || typeof left[prop] === 'number') {
-	                console.log('typeof right[' + prop + '] === \'string\' || typeof left[' + prop + '] === \'number\')');
-	                console.log(left[prop] + ' !== ' + right[prop]);
-	                return false;
-	            }
-	            // By now, we've established that both left[prop] and right[prop] are objects, so lets recurse on them
-	            if (!compare(left[prop], right[prop]))
-	                return false;
-	        }
-	        return true;
-	    }
-	    debug.compare = compare;
-	})(debug = exports.debug || (exports.debug = {}));
-	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.default = debug;
-
-
-/***/ },
-/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -211,9 +74,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var joystick_1 = __webpack_require__(4);
-	var events_1 = __webpack_require__(5);
-	var drag_listener_1 = __webpack_require__(6);
+	var joystick_1 = __webpack_require__(2);
+	var events_1 = __webpack_require__(4);
+	var drag_listener_1 = __webpack_require__(5);
 	var general_controller_1 = __webpack_require__(8);
 	/****************************/
 	/*** The Stick Controller ***/
@@ -263,7 +126,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 4 */
+/* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -272,7 +135,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var debug_1 = __webpack_require__(2);
+	var PIXI = __webpack_require__(3);
 	/**
 	 * The graphical component. Contains no business logic (which is handled in StickController)
 	 */
@@ -280,7 +143,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __extends(Joystick, _super);
 	    function Joystick(x, y, options) {
 	        _super.call(this);
-	        this.id = debug_1.default.id(this, 'Stick');
 	        this._options = {
 	            opacity: 0.25
 	        };
@@ -353,7 +215,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 5 */
+/* 3 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_3__;
+
+/***/ },
+/* 4 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -376,11 +244,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 6 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var util_1 = __webpack_require__(1);
+	var util_1 = __webpack_require__(6);
 	var transformManager_1 = __webpack_require__(7);
 	exports.dragListener = {
 	    xy: function (event) {
@@ -448,10 +316,43 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 7 */
-/***/ function(module, exports) {
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	var PIXI = __webpack_require__(3);
+	function magnitude(vec) {
+	    return Math.sqrt((vec.x * vec.x) + (vec.y * vec.y));
+	}
+	exports.magnitude = magnitude;
+	function unitVector(vec, outVec) {
+	    outVec = outVec || new PIXI.Point();
+	    var mag = magnitude(vec);
+	    outVec.x = vec.x / mag;
+	    outVec.y = vec.y / mag;
+	    return outVec;
+	}
+	exports.unitVector = unitVector;
+	function sign(value) {
+	    return value ? (value < 0 ? -1 : 1) : null;
+	}
+	exports.sign = sign;
+	function isMouseEvent(event) {
+	    return event.button !== undefined;
+	}
+	exports.isMouseEvent = isMouseEvent;
+	function isTouchEvent(event) {
+	    return event.changedTouches !== undefined;
+	}
+	exports.isTouchEvent = isTouchEvent;
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var PIXI = __webpack_require__(3);
 	/**
 	 * Provides a way to get at the InteractionManager.mapPositionToPoint() function from outside of the InteractionManager
 	 */
@@ -475,7 +376,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var util_1 = __webpack_require__(1);
+	var util_1 = __webpack_require__(6);
+	var PIXI = __webpack_require__(3);
 	/****************************/
 	/*** The Stick Controller ***/
 	/****************************/
@@ -621,9 +523,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var joystick_1 = __webpack_require__(4);
-	var events_1 = __webpack_require__(5);
-	var drag_listener_1 = __webpack_require__(6);
+	var joystick_1 = __webpack_require__(2);
+	var PIXI = __webpack_require__(3);
+	var events_1 = __webpack_require__(4);
+	var drag_listener_1 = __webpack_require__(5);
 	var general_controller_1 = __webpack_require__(8);
 	function generateColor() {
 	    var color = 0;

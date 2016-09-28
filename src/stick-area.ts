@@ -5,9 +5,8 @@ import Joystick from './joystick';
 import IStickOptions from './IStickOptions';
 import IController from './IController';
 
+import * as PIXI from 'pixi.js';
 import events from './events';
-
-import debug from './debug';
 
 import { dragListener } from './drag-listener';
 import { GeneralController } from './general-controller';
@@ -30,7 +29,7 @@ function generateColor() {
 }
 
 
-export class StickArea extends GeneralController implements IController {
+export class StickArea extends GeneralController {
 
     protected _area: PIXI.Graphics;
 

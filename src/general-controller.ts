@@ -7,12 +7,10 @@ import IController from './IController';
 
 import events from './events';
 
-import debug from './debug';
-
 import { transformManager } from'./transformManager.ts';
 
 import { dragListener } from './drag-listener';
-
+import * as PIXI from 'pixi.js';
 
 /****************************/
 /*** The Stick Controller ***/

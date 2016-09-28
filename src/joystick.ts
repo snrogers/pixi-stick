@@ -1,14 +1,12 @@
 import { magnitude, sign, unitVector } from './util';
 import IStickOptions from './istickoptions';
 
-import debug from './debug';
+import * as PIXI from 'pixi.js';
 
 /**
  * The graphical component. Contains no business logic (which is handled in StickController)
  */
 export class Joystick extends PIXI.Container {
-
-    public id: string = debug.id(this, 'Stick');
 
     private _options: IStickOptions = {
         opacity: 0.25

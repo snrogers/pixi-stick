@@ -1,3 +1,4 @@
+import * as PIXI from 'pixi.js';
 import { isMouseEvent, isTouchEvent, magnitude, sign, unitVector } from './util';
 
 import Joystick from './joystick';
@@ -7,7 +8,6 @@ import IController from './IController';
 
 import events from './events';
 
-import debug from './debug';
 
 import { transformManager } from'./transformManager.ts';
 
