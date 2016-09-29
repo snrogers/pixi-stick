@@ -3,5 +3,3 @@ export interface IController {
     id: number;
     identifier: number;
 }
-
-export default IController;

@@ -1,15 +1,15 @@
-import { isMouseEvent, magnitude, sign, unitVector } from './util';
+import { Joystick } from './joystick';
+import { GeneralController } from './general-controller';
 
-import Joystick from './joystick';
-
-import IStickOptions from './istick-options';
-import IController from './icontroller';
-
-import * as PIXI from 'pixi.js';
-import events from './events';
+import { IStickOptions } from './istick-options';
+import { IController } from './icontroller';
 
 import { dragListener } from './drag-listener';
-import { GeneralController } from './general-controller';
+import { isMouseEvent, magnitude, sign, unitVector } from './util';
+
+import { events } from './events';
+
+import * as PIXI from 'pixi.js';
 
 export interface IStickAreaOptions extends IStickOptions {
     [key: string]: any;
@@ -29,7 +29,7 @@ function generateColor() {
 }
 
 
-export class StickArea extends GeneralController {
+export class StickAreaController extends GeneralController {
 
     protected _area: PIXI.Graphics;
 
@@ -104,5 +104,3 @@ export class StickArea extends GeneralController {
         this._joystick.y = position.y;
     }
 }
-
-export default StickArea;

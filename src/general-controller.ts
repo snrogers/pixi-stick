@@ -1,15 +1,12 @@
+import { Joystick } from './joystick';
+import { IStickOptions } from './istick-options';
+import { IController } from './icontroller';
+
 import { isMouseEvent, magnitude, sign, unitVector } from './util';
-
-import Joystick from './joystick';
-
-import IStickOptions from './istick-options';
-import IController from './icontroller';
-
-import events from './events';
-
-import { transformManager } from'./transformManager.ts';
-
+import { events } from './events';
+import { transformManager } from'./transform-manager.ts';
 import { dragListener } from './drag-listener';
+
 import * as PIXI from 'pixi.js';
 
 /****************************/
@@ -194,5 +191,3 @@ export abstract class GeneralController extends PIXI.Container implements IContr
         this._axes.y = 0;
     }
 }
-
-export default GeneralController;

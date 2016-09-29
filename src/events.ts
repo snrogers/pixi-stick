@@ -21,5 +21,3 @@ export const events: { [eventType: string]: IEventCategory } = {
         onTouchEndOutside: 'touchendoutside'
     }
 }
-
-export default events;

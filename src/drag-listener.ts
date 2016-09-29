@@ -1,5 +1,5 @@
 import { magnitude, sign, unitVector} from './util';
-import { transformManager } from './transformManager';
+import { transformManager } from './transform-manager';
 
 export interface IListenerDictionary {
     [key: string]: (event: Touch | MouseEvent) => void,
@@ -66,6 +66,3 @@ export const dragListener: IListenerDictionary = {
         if (this.onAxisChange) this.onAxisChange(this._axes);
     }
 }
-
-
-export default dragListener;

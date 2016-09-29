@@ -1,19 +1,16 @@
-import * as PIXI from 'pixi.js';
-import { isMouseEvent, isTouchEvent, magnitude, sign, unitVector } from './util';
-
-import Joystick from './joystick';
-
-import IStickOptions from './istick-options';
-import IController from './icontroller';
-
-import events from './events';
-
-
-import { transformManager } from'./transformManager.ts';
-
-import { dragListener } from './drag-listener';
+import { IController } from './icontroller';
+import { IStickOptions } from './istick-options';
 
 import { GeneralController } from './general-controller';
+import { Joystick } from './joystick';
+
+import { dragListener } from './drag-listener';
+import { isMouseEvent, isTouchEvent, magnitude, sign, unitVector } from './util';
+
+import { events } from './events';
+import { transformManager } from'./transform-manager.ts';
+
+import * as PIXI from 'pixi.js';
 
 
 /****************************/
@@ -61,5 +58,3 @@ export class StickController extends GeneralController {
         );
     }
 }
-
-export default StickController;
