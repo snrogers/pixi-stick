@@ -1,5 +1,5 @@
 import { magnitude, sign, unitVector } from './util';
-import IStickOptions from './istickoptions';
+import IStickOptions from './istick-options';
 
 import * as PIXI from 'pixi.js';
 

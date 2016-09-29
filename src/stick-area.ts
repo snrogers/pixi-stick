@@ -2,8 +2,8 @@ import { isMouseEvent, magnitude, sign, unitVector } from './util';
 
 import Joystick from './joystick';
 
-import IStickOptions from './IStickOptions';
-import IController from './IController';
+import IStickOptions from './istick-options';
+import IController from './icontroller';
 
 import * as PIXI from 'pixi.js';
 import events from './events';
