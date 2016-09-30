@@ -24,11 +24,11 @@ square.drawRect(0, 0, 20, 20);
 square.endFill();
 
 // Define a couple of sticks for the user to control;
-var leftStick = new PixiStick.Stick(75, 225, {
+var leftStick = new PixiStick.StickController(75, 225, {
     axes: 'x'
 });
 
-var rightStick = new PixiStick.Stick(325, 225, {
+var rightStick = new PixiStick.StickController(325, 225, {
     axes: 'y'
 });
 

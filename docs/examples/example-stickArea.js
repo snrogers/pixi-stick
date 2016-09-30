@@ -36,11 +36,11 @@ rightSquare.endFill();
 
 
 // Define a couple of sticks for the user to control;
-var leftStickArea = new PixiStick.StickArea(0, 0, 200, 300, {
+var leftStickArea = new PixiStick.StickAreaController(0, 0, 200, 300, {
     debug: true
 });
 
-var rightStickArea = new PixiStick.StickArea(200, 0, 200, 300, {
+var rightStickArea = new PixiStick.StickAreaController(200, 0, 200, 300, {
     debug: true
 });
 
