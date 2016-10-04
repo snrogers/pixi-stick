@@ -4,10 +4,10 @@ import { IController } from './icontroller';
 
 import { isMouseEvent, magnitude, sign, unitVector } from './util';
 import { events } from './events';
-import { transformManager } from'./transform-manager.ts';
 import { dragListener } from './drag-listener';
 
 import * as PIXI from 'pixi.js';
+
 
 /****************************/
 /*** The Stick Controller ***/

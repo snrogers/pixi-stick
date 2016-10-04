@@ -1,5 +1,30 @@
 import { magnitude, sign, unitVector} from './util';
-import { transformManager } from './transform-manager';
+
+
+
+/************************/
+/*** The Monkey Patch ***/
+/************************/
+/* We monkey patch autoDetectRenderer() so that
+ * we keep a reference to the mapPositionToPoint method
+ * of the most recently created SystemRenderer
+*/
+
+let mapPositionToPoint: (point: PIXI.Point, x: number, y: number) => PIXI.Point;
+
+PIXI.autoDetectRenderer = (function (func: (width: number, height: number, options?: PIXI.RendererOptions, noWebGL?: boolean) => PIXI.WebGLRenderer | PIXI.CanvasRenderer) {
+    return function (width: number, height: number, options?: PIXI.RendererOptions, noWebGL?: boolean) {
+        let renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer = window.capturedRenderer = func(width, height, options, noWebGL);
+        mapPositionToPoint = renderer.plugins.interaction.mapPositionToPoint.bind(renderer.plugins.interaction);
+        return renderer;
+    }
+})(PIXI.autoDetectRenderer);
+
+
+
+/***********************/
+/*** Everything Else ***/
+/***********************/
 
 export interface IListenerDictionary {
     [key: string]: (event: Touch | MouseEvent) => void,
@@ -8,7 +33,7 @@ export interface IListenerDictionary {
 export const dragListener: IListenerDictionary = {
 
     xy: function (event: Touch | MouseEvent) {
-        transformManager.mapPositionToPoint(this._axes, event.clientX, event.clientY)
+        mapPositionToPoint(this._axes, event.clientX, event.clientY)
         this._joystick.toLocal(this._axes, null, this._axes);
 
         if (magnitude(this._axes) > this._options.wellRadius) {
@@ -27,7 +52,7 @@ export const dragListener: IListenerDictionary = {
     },
 
     x: function (event: Touch | MouseEvent) {
-        transformManager.mapPositionToPoint(this._axes, event.clientX, event.clientY)
+        mapPositionToPoint(this._axes, event.clientX, event.clientY)
         this._joystick.toLocal(this._axes, null, this._axes);
 
         if (Math.abs(this._axes.x) > this._options.wellRadius) {
@@ -47,7 +72,7 @@ export const dragListener: IListenerDictionary = {
     },
 
     y: function dragListenerY(event: Touch | MouseEvent) {
-        transformManager.mapPositionToPoint(this._axes, event.clientX, event.clientY)
+        mapPositionToPoint(this._axes, event.clientX, event.clientY)
         this._joystick.toLocal(this._axes, null, this._axes);
 
         if (Math.abs(this._axes.y) > this._options.wellRadius) {

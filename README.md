@@ -1,4 +1,5 @@
-# PixiStick
+# PixiStick 
+# **DONT USE THIS LIBRARY. ITS NOT DONE YET**
 A PIXI plugin for thumbstick-style touchscreen controls.
 
 ## Install

@@ -7,7 +7,7 @@ const ts = require('gulp-typescript');
 const sourceMaps = require('gulp-sourcemaps');
 
 const webpackConfigPublish = require('./webpack.config.js').publish;
-const webpackConfigDev = require('./webpack.config.js').dev;
+const webpackConfigDev = require('./webpack.config.js').devOld;
 
 const spawn = require('child_process').spawn;
 const chalk = require('chalk');

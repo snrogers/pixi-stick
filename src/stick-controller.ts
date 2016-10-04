@@ -8,7 +8,6 @@ import { dragListener } from './drag-listener';
 import { isMouseEvent, isTouchEvent, magnitude, sign, unitVector } from './util';
 
 import { events } from './events';
-import { transformManager } from'./transform-manager.ts';
 
 import * as PIXI from 'pixi.js';
 

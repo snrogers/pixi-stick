@@ -6,7 +6,7 @@ var renderer = PIXI.autoDetectRenderer(400, 300);
 renderer.backgroundColor = 0x8888ff;
 
 // Provide a reference to the renderer;
-PixiStick.init(renderer);
+// PixiStick.init(renderer);
 
 // add the renderer view element to the DOM
 document.querySelector('#gameDiv').appendChild(renderer.view);
