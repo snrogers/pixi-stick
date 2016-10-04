@@ -1,10 +1,10 @@
-var playerSpeed = 10;
+/*************************************/
+/*** Basic StickController Example ***/
+/*************************************/
 
-// STATIC STICK example
 // create a renderer instance.
 var renderer = PIXI.autoDetectRenderer(400, 300);
 renderer.backgroundColor = 0x8888ff;
-// PixiStick.init(renderer);
 
 // add the renderer view element to the DOM
 document.querySelector('#gameDiv').appendChild(renderer.view);
@@ -44,11 +44,13 @@ var rightStickArea = new PixiStick.StickAreaController(200, 0, 200, 300, {
     debug: true
 });
 
+// Add everything to the stage
 stage.addChild(leftSquare);
 stage.addChild(rightSquare);
 stage.addChild(leftStickArea);
 stage.addChild(rightStickArea);
 
+var playerSpeed = 10; // Define a maximum speed for the squares
 
 // Handle leftStickArea input
 leftStickArea.onAxisChange = function(axes) {

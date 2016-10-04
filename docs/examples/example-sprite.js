@@ -1,11 +1,10 @@
-var playerSpeed = 10;
+/*********************************************/
+/*** Custom Sprite StickController Example ***/
+/*********************************************/
 
-// STATIC STICK example
 // create a renderer instance.
 var renderer = PIXI.autoDetectRenderer(400, 300);
 renderer.backgroundColor = 0x8888ff;
-
-// PixiStick.init(renderer);
 
 // add the renderer view element to the DOM
 document.querySelector('#gameDiv').appendChild(renderer.view);
@@ -51,12 +50,13 @@ var rightStick = new PixiStick.StickController(325, 225, {
     opacity: 0.3
 });
 
-
+// Add everything to the stage
 stage.addChild(leftSquare);
 stage.addChild(rightSquare);
 stage.addChild(leftStick);
 stage.addChild(rightStick);
 
+var playerSpeed = 10; // Define a maximum speed for the squares
 
 // Handle leftStick input
 leftStick.onAxisChange = function(axes) {

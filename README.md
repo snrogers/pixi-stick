@@ -11,8 +11,6 @@ npm install --save-dev pixi-stick
 ```js
 var renderer = PIXI.autoDetectRenderer(400, 300);
 
-PixiStick.init(renderer); // Provide a reference to the renderer;
-
 var stage = new PIXI.Container();
 
 var stick = new PixiStick.Stick(75, 225, {
