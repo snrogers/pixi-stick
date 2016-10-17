@@ -1,13 +1,15 @@
 {
   "name": "pixi-stick",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "a touchscreen thumbstick for Pixi.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/snrogers/pixi-stick.git"
   },
   "main": "src/index.ts",
-  "scripts": {},
+  "scripts": {
+    "postinstall": "gulp publish"
+  },
   "dependencies": {},
   "devDependencies": {
     "autodts": "0.0.6",
