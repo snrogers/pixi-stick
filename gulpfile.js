@@ -73,13 +73,14 @@ gulp.task("webpack-publish", function(cb) {
 
 gulp.task('compile-publish', ['webpack-publish'], function(cb) {
     return gulp.src("./src/*.d.ts")
-        .pipe(gulp.dest('./dist'));
+        .pipe(gulp.dest('./build'));
 })
 
 gulp.task('publish', ['compile-publish'], function(cb) {
-    rimraf('./src/*.d.ts', {}, function() {
-        cb();
-    });
+    // rimraf('./src/*.d.ts', {}, function() {
+    //     cb();
+    // });
+    cb();
 });
 
 

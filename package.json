@@ -1,12 +1,13 @@
 {
   "name": "pixi-stick",
   "version": "0.0.4",
+  "author": "",
   "description": "a touchscreen thumbstick for Pixi.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/snrogers/pixi-stick.git"
   },
-  "main": "src/index.ts",
+  "main": "build/pixi-stick.ts",
   "scripts": {
     "postinstall": "gulp publish"
   },
@@ -33,7 +34,9 @@
   "peerDependencies": {
     "pixi.js": "^4.0.0"
   },
-  "author": "",
+  "typescript": {
+    "definition": "build/index.d.ts"
+  },
   "license": "ISC",
   "homepage": "https://bitbucket.org/snrogers/pixi-stick#readme"
 }
