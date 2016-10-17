@@ -73,12 +73,6 @@ gulp.task("webpack-publish", function(cb) {
 
 gulp.task('compile-publish', ['webpack-publish'], function(cb) {
     return gulp.src("./src/*.d.ts")
-        // .pipe(deleteLines({
-        //     'filters': [
-        //         /^import/
-        //     ]
-        // }))
-        // .pipe(gulpConcat('pixi-stick.d.ts'))
         .pipe(gulp.dest('./dist'));
 })
 

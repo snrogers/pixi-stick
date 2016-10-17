@@ -71,7 +71,7 @@ module.exports = {
             PixiStick: "./src/index.ts"
         },
         output: {
-            filename: "./dist/pixi-stick.js",
+            filename: "./build/pixi-stick.js",
             library: "PixiStick",
             libraryTarget: "umd",
             umdNamedDefine: true
