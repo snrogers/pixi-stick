@@ -9,36 +9,6 @@ console.log('****************************');
 
 module.exports = {
     dev: {
-        devtool: 'source-map',
-        entry: ['./src/index.ts', 'pixi.js'],
-        output: {
-            filename: 'build/PixiStick.js'
-        },
-        resolve: {
-            extensions: ["", '.ts', ".js"]
-        },
-        externals: {},
-        module: {
-            postLoaders: [{
-                loader: "transform?brfs"
-            }],
-            loaders: [
-                // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'.
-                {
-                    test: /\.ts?$/,
-                    loader: "ts-loader"
-                }
-            ],
-            preLoaders: [
-                // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
-                {
-                    test: /\.js$/,
-                    loader: "source-map-loader"
-                }
-            ]
-        }
-    },
-    devOld: {
         entry: {
             PixiStick: "./src/index.ts"
         },
@@ -73,8 +43,7 @@ module.exports = {
         output: {
             filename: "./build/pixi-stick.js",
             library: "PixiStick",
-            libraryTarget: "umd",
-            umdNamedDefine: true
+            libraryTarget: "commonjs"
         },
 
         // Enable sourcemaps for debugging webpack's output.
