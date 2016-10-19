@@ -1,8 +1,8 @@
 {
   "name": "pixi-stick",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "author": "",
-  "description": "a touchscreen thumbstick for Pixi.js",
+  "description": "A touchscreen thumbstick for Pixi.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/snrogers/pixi-stick.git"
