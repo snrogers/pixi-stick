@@ -424,8 +424,6 @@ var StickAreaController = function (_super) {
     return StickAreaController;
 }(GeneralController);
 
-console.log('WHAT');
-
 exports.StickController = StickController;
 exports.StickAreaController = StickAreaController;
 
