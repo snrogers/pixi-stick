@@ -1,6 +1,6 @@
 {
   "name": "pixi-stick",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "",
   "description": "Thumbstick-style touchscreen controls for Pixi.js",
   "repository": {
