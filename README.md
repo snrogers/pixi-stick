@@ -8,11 +8,14 @@ npm install --save pixi-stick
 
 ## Basic usage example
 ```js
-var renderer = PIXI.autoDetectRenderer(400, 300);
+import PIXI from 'pixi.js';
+import PixiStick from 'pixi-stick';
 
-var stage = new PIXI.Container();
+let renderer = PIXI.autoDetectRenderer(400, 300);
 
-var stick = new PixiStick.StickController(75, 225, {
+let stage = new PIXI.Container();
+
+let stick = new PixiStick.StickController(75, 225, {
     axes: 'xy'
 });
 
