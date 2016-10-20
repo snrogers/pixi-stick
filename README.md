@@ -1,10 +1,9 @@
 # PixiStick 
-# **DONT USE THIS LIBRARY. ITS NOT DONE YET**
-A PIXI plugin for thumbstick-style touchscreen controls.
+Thumbstick-style touchscreen controls for Pixi.js
 
 ## Install
 ```
-npm install --save-dev pixi-stick
+npm install --save pixi-stick
 ```
 
 ## Basic usage example
@@ -13,7 +12,7 @@ var renderer = PIXI.autoDetectRenderer(400, 300);
 
 var stage = new PIXI.Container();
 
-var stick = new PixiStick.Stick(75, 225, {
+var stick = new PixiStick.StickController(75, 225, {
     axes: 'xy'
 });
 
@@ -55,7 +54,7 @@ stick.onAxisChange = function (axes){
 };
 ```
 
-## API
+## API   
 ### PixiStick.StickController
 > constructor(x, y, options)
 > * x: number
@@ -70,7 +69,7 @@ default options
     axes: 'xy',       // Which axes are supported? 'xy', 'x', or 'y'
     deadZone: 0,      // *UNIMPLEMENTED* Minimum axial output *UNIMPLEMENTED*
     nub: null,        // PIXI.Sprite object to use as the nub
-    nubSize: 0.3,     // Size of the nub (0.3 mean the nub is %30 the diamater of the well)
+    nubSize: 0.3,     // Size of the nub (0.3 mean the nub is 30% the diameter of the well)
     well: null,       // PIXI.Sprite object to use as the well
     wellRadius: 50,   // Radius of the well in pixels
 };
@@ -93,13 +92,11 @@ default options
     axes: 'xy',       // Which axes are supported? 'xy', 'x', or 'y'
     deadZone: 0,      // *UNIMPLEMENTED* Minimum axial output *UNIMPLEMENTED*
     nub: null,        // PIXI.Sprite object to use as the nub
-    nubSize: 0.3,     // Size of the nub (0.3 mean the nub is %30 the diamater of the well)
+    nubSize: 0.3,     // Size of the nub (0.3 mean the nub is 30% the diameter of the well)
     well: null,       // PIXI.Sprite object to use as the well
     wellRadius: 50,   // Radius of the well in pixels
 };
 ```
-
-
 
 
 ## Examples
@@ -115,7 +112,5 @@ default options
 ## TODO
 * Implement onTap events
 * Implement deadzone
-* Improve API documentation
-* Redo Webpack config
 
 

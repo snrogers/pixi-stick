@@ -1,6 +1,7 @@
 var gulp = require('gulp');
 var chalk = require('chalk');
 var rollup = require('rollup');
+var insert = require('gulp-insert');
 
 var fs = require('fs');
 var spawn = require('child_process').spawn;
@@ -17,7 +18,7 @@ var typescript = require('rollup-plugin-typescript');
 var publishDest = 'build/pixi-stick.js';
 var devDest = 'docs/dist/pixi-stick.js';
 
-var options = {
+var rollupOptions = {
     cache: cache,
     entry: 'src/index.ts',
     external: ['pixi.js'],
@@ -29,12 +30,6 @@ var options = {
             browser: true,
         }),
         commonjs(),
-        // eslint({
-        //     exclude: [
-        //         'src/styles/**',
-        //     ]
-        // })
-        // ,
         babel({
             exclude: 'node_modules/**',
         })
@@ -48,7 +43,7 @@ var options = {
 /************************/
 gulp.task('publish', function () {
     console.log('Building for publishing')
-    return rollup.rollup(options)
+    return rollup.rollup(rollupOptions)
         .then(function (bundle) {
             return bundle.write({
                 dest: publishDest,
@@ -58,6 +53,13 @@ gulp.task('publish', function () {
                     'pixi.js': 'PIXI'
                 }
             });
+        })
+        .then(function () {
+            return gulp.src(publishDest)
+                .pipe(insert.prepend(`if (this === window && !window.PIXI){
+    throw new Error('PIXI not found! If you are using PixiStick without bundling (i.e. loading pixi-stick.js via <script> tags), ensure that pixi-stick.js is loaded AFTER pixi.js ');
+}\n
+`)).pipe(gulp.dest('./build'));
         });
 });
 
@@ -69,7 +71,7 @@ gulp.task('publish', function () {
 var cache;
 gulp.task('compile-dev', function (cb) {
     console.log('Building for dev')
-    return rollup.rollup(options)
+    return rollup.rollup(rollupOptions)
         .then(function (bundle) {
             cache = bundle;
 
@@ -81,8 +83,16 @@ gulp.task('compile-dev', function (cb) {
                     'pixi.js': 'PIXI'
                 }
             });
+        })
+        .then(function () {
+            return gulp.src(devDest)
+                .pipe(insert.prepend(`if (this === window && !window.PIXI){
+    throw new Error('PIXI not found! If you are using PixiStick without bundling (i.e. loading pixi-stick.js via <script> tags), ensure that pixi-stick.js is loaded AFTER pixi.js ');
+}\n
+`)).pipe(gulp.dest('./docs/dist'));
         });
 });
+
 
 var serverProcess;
 gulp.task('dev', ['compile-dev'], function () {

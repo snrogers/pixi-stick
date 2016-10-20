@@ -1,8 +1,12 @@
+if (this === window && !window.PIXI){
+    throw new Error('PIXI not found! If you are using PixiStick without bundling (i.e. loading pixi-stick.js via <script> tags), ensure that pixi-stick.js is loaded AFTER pixi.js ');
+}
+
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('pixi.js')) :
-    typeof define === 'function' && define.amd ? define(['exports', 'pixi.js'], factory) :
-    (factory((global.PixiStick = global.PixiStick || {}),global.PIXI));
-}(this, (function (exports,PIXI$1) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('pixi.js')) :
+    typeof define === 'function' && define.amd ? define(['pixi.js'], factory) :
+    (global.PixiStick = factory(global.PIXI));
+}(this, (function (PIXI$1) { 'use strict';
 
 function __extends(d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -424,11 +428,11 @@ var StickAreaController = function (_super) {
     return StickAreaController;
 }(GeneralController);
 
-console.log('WHAT');
+var pixiStick = {
+    StickController: StickController,
+    StickAreaController: StickAreaController
+};
 
-exports.StickController = StickController;
-exports.StickAreaController = StickAreaController;
-
-Object.defineProperty(exports, '__esModule', { value: true });
+return pixiStick;
 
 })));
