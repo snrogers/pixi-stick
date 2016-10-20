@@ -436,3 +436,4 @@ var pixiStick = {
 return pixiStick;
 
 })));
+//# sourceMappingURL=pixi-stick.js.map

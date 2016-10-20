@@ -23,13 +23,15 @@ var rollupOptions = {
     entry: 'src/index.ts',
     external: ['pixi.js'],
     plugins: [
-        typescript(),
-        resolve({
-            jsnext: true,
-            main: true,
-            browser: true,
+        typescript({
+            typescript: require('typescript')
         }),
-        commonjs(),
+        // resolve({
+        //     jsnext: true,
+        //     main: true,
+        //     browser: true,
+        // }),
+        // commonjs(),
         babel({
             exclude: 'node_modules/**',
         })
@@ -48,6 +50,7 @@ gulp.task('publish', function () {
             return bundle.write({
                 dest: publishDest,
                 format: 'umd',
+                sourceMap: 'true',
                 moduleName: 'PixiStick',
                 globals: {
                     'pixi.js': 'PIXI'
