@@ -6,7 +6,7 @@ import { isMouseEvent, magnitude, sign, unitVector } from './util';
 import { events } from './events';
 import { dragListener } from './drag-listener';
 
-import * as PIXI from 'pixi.js';
+import PIXI from 'pixi.js';
 
 
 /****************************/
@@ -21,7 +21,6 @@ export abstract class GeneralController extends PIXI.Container implements IContr
     protected _options: IStickOptions = {
         touch: true,
         mouse: true,
-
         axes: 'xy',
         deadZone: 0, // TODO: Implement deadZone
         nub: null,
@@ -52,7 +51,6 @@ export abstract class GeneralController extends PIXI.Container implements IContr
     /**************/
     /*** Events ***/
     /**************/
-
     /** Fires when the stick is touched */
     public onTouchStart: (axes: PIXI.Point) => void;
 

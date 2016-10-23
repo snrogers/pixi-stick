@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import PIXI from 'pixi.js';
 
 export function magnitude(vec: PIXI.Point) {
     return Math.sqrt((vec.x * vec.x) + (vec.y * vec.y));

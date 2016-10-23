@@ -6,7 +6,9 @@ if (this === window && !window.PIXI){
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('pixi.js')) :
     typeof define === 'function' && define.amd ? define(['pixi.js'], factory) :
     (global.PixiStick = factory(global.PIXI));
-}(this, (function (PIXI$1) { 'use strict';
+}(this, (function (PIXI) { 'use strict';
+
+PIXI = 'default' in PIXI ? PIXI['default'] : PIXI;
 
 function __extends(d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -18,7 +20,7 @@ function magnitude(vec) {
     return Math.sqrt(vec.x * vec.x + vec.y * vec.y);
 }
 function unitVector(vec, outVec) {
-    outVec = outVec || new PIXI$1.Point();
+    outVec = outVec || new PIXI.Point();
     var mag = magnitude(vec);
     outVec.x = vec.x / mag;
     outVec.y = vec.y / mag;
@@ -52,7 +54,7 @@ var GeneralController = function (_super) {
             wellRadius: 50
         };
         this.isTouched = false;
-        this._axes = new PIXI$1.Point(0, 0);
+        this._axes = new PIXI.Point(0, 0);
         this._registeredEventListeners = [];
         this.x = x;
         this.y = y;
@@ -156,11 +158,9 @@ var GeneralController = function (_super) {
         this._axes.y = 0;
     };
     return GeneralController;
-}(PIXI$1.Container);
+}(PIXI.Container);
 
-/**
- * The graphical component. Contains no business logic (which is handled in StickController)
- */
+/** The graphical component. Contains no business logic (which is handled in StickController) */
 var Joystick = function (_super) {
     __extends(Joystick, _super);
     function Joystick(x, y, options) {
@@ -187,7 +187,7 @@ var Joystick = function (_super) {
             this.well.anchor.x = 0.5;
             this.well.anchor.y = 0.5;
         } else {
-            this.well = new PIXI$1.Graphics();
+            this.well = new PIXI.Graphics();
             switch (this._options.axes) {
                 case 'xy':
                     this.well.beginFill(0xffffff, this._options.opacity);
@@ -218,7 +218,7 @@ var Joystick = function (_super) {
             this.nub.anchor.x = 0.5;
             this.nub.anchor.y = 0.5;
         } else {
-            this.nub = new PIXI$1.Graphics();
+            this.nub = new PIXI.Graphics();
             this.nub.beginFill(0xffffff, this._options.opacity);
             this.nub.drawCircle(0, 0, this._options.wellRadius * this._options.nubSize);
             this.nub.endFill();
@@ -228,7 +228,7 @@ var Joystick = function (_super) {
         this.addChild(this.nub);
     };
     return Joystick;
-}(PIXI$1.Container);
+}(PIXI.Container);
 
 /************************/
 /*** The Monkey Patch ***/
@@ -389,7 +389,7 @@ var StickAreaController = function (_super) {
                 }
             }
         }
-        this._area = new PIXI$1.Graphics();
+        this._area = new PIXI.Graphics();
         this._area.beginFill(generateColor(), this._options.debug ? 0.7 : 0);
         this._area.drawRect(0, 0, width, height);
         this._area.endFill();

@@ -1,11 +1,9 @@
 import { magnitude, sign, unitVector } from './util';
 import IStickOptions from './istick-options';
 
-import * as PIXI from 'pixi.js';
+import PIXI from 'pixi.js';
 
-/**
- * The graphical component. Contains no business logic (which is handled in StickController)
- */
+/** The graphical component. Contains no business logic (which is handled in StickController) */
 export class Joystick extends PIXI.Container {
 
     private _options: IStickOptions = {

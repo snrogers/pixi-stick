@@ -11,15 +11,70 @@ const spawn = require('child_process').spawn;
 const babel = require('rollup-plugin-babel');
 const eslint = require('rollup-plugin-eslint');
 const typescript = require('rollup-plugin-typescript');
-// const resolve = require('rollup-plugin-node-resolve');
-// const commonjs = require('rollup-plugin-commonjs');
-
+const resolve = require('rollup-plugin-node-resolve');
+const commonjs = require('rollup-plugin-commonjs');
 
 // Config Options
-const publishDest = 'build/pixi-stick.js';
+const es6Dest = 'build/pixi-stick.es2015.js';
+const es5Dest = 'build/pixi-stick.js';
 const devDest = 'docs/dist/pixi-stick.js';
 
-const rollupOptions = {
+const publishOptionsEs6 = {
+    entry: 'src/index.ts',
+    external: ['pixi.js'],
+    plugins: [
+        typescript({
+            typescript: require('typescript')
+        }),
+        resolve({
+            jsnext: true,
+            main: true,
+            browser: true,
+        }),
+        commonjs(),
+        babel({
+            presets: [
+                [
+                    "es2015",
+                    {
+                        "modules": false
+                    }
+                ]
+            ],
+            exclude: 'node_modules/**',
+        })
+    ],
+};
+
+const publishOptionsEs5 = {
+    entry: 'src/index.ts',
+    external: ['pixi.js'],
+    plugins: [
+        typescript({
+            typescript: require('typescript')
+        }),
+        resolve({
+            jsnext: true,
+            main: true,
+            browser: true,
+        }),
+        commonjs(),
+        babel({
+            presets: [
+                [
+                    "es2015",
+                    {
+                        "modules": false
+                    }
+                ]
+            ],
+            exclude: 'node_modules/**',
+        })
+    ],
+};
+
+let cache;
+const DevOptions = {
     cache: cache,
     entry: 'src/index.ts',
     external: ['pixi.js'],
@@ -27,13 +82,21 @@ const rollupOptions = {
         typescript({
             typescript: require('typescript')
         }),
-        // resolve({
-        //     jsnext: true,
-        //     main: true,
-        //     browser: true,
-        // }),
-        // commonjs(),
+        resolve({
+            jsnext: true,
+            main: true,
+            browser: true,
+        }),
+        commonjs(),
         babel({
+            presets: [
+                [
+                    "es2015",
+                    {
+                        "modules": false
+                    }
+                ]
+            ],
             exclude: 'node_modules/**',
         })
     ],
@@ -41,15 +104,40 @@ const rollupOptions = {
 
 
 
+
 /************************/
 /**  Publishing Tasks  **/
 /************************/
-gulp.task('publish', function () {
+gulp.task('publish-es6', function () {
     console.log('Building for publishing')
-    return rollup.rollup(rollupOptions)
+    return rollup.rollup(publishOptionsEs6)
         .then(function (bundle) {
             return bundle.write({
-                dest: publishDest,
+                dest: es6Dest,
+                format: 'es',
+                sourceMap: 'true',
+                moduleName: 'PixiStick',
+                globals: {
+                    'pixi.js': 'PIXI'
+                }
+            });
+        })
+        .then(function () {
+            // Prepend a check for window.PIXI 
+            return gulp.src(es6Dest)
+                .pipe(insert.prepend(`if (this === window && !window.PIXI){
+    throw new Error('PIXI not found! If you are using PixiStick without bundling (i.e. loading pixi-stick.js via <script> tags), ensure that pixi-stick.js is loaded AFTER pixi.js ');
+}\n
+`)).pipe(gulp.dest('./build'));
+        });
+});
+
+gulp.task('publish-es5', function () {
+    console.log('Building for publishing')
+    return rollup.rollup(publishOptionsEs5)
+        .then(function (bundle) {
+            return bundle.write({
+                dest: es5Dest,
                 format: 'umd',
                 sourceMap: 'true',
                 moduleName: 'PixiStick',
@@ -59,9 +147,8 @@ gulp.task('publish', function () {
             });
         })
         .then(function () {
-
             // Prepend a check for window.PIXI 
-            return gulp.src(publishDest)
+            return gulp.src(es5Dest)
                 .pipe(insert.prepend(`if (this === window && !window.PIXI){
     throw new Error('PIXI not found! If you are using PixiStick without bundling (i.e. loading pixi-stick.js via <script> tags), ensure that pixi-stick.js is loaded AFTER pixi.js ');
 }\n
@@ -71,13 +158,13 @@ gulp.task('publish', function () {
 
 
 
+
 /***********************/
 /** Development Tasks **/
 /***********************/
-var cache;
 gulp.task('compile-dev', function (cb) {
     console.log('Building for dev')
-    return rollup.rollup(rollupOptions)
+    return rollup.rollup(DevOptions)
         .then(function (bundle) {
             cache = bundle;
 
@@ -124,8 +211,9 @@ gulp.task('dev', ['compile-dev'], function () {
 /********************/
 /**  Default Task  **/
 /********************/
-gulp.task('default', ['publish'], function () {
-});
+gulp.task('default', ['publish-es6', 'publish-es5'], function () { });
+
+gulp.task('all', ['publish-es6', 'publish-es5', 'compile-dev'], function () { });
 
 
 

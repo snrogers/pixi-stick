@@ -9,7 +9,7 @@ import { isMouseEvent, magnitude, sign, unitVector } from './util';
 
 import { events } from './events';
 
-import * as PIXI from 'pixi.js';
+import PIXI from 'pixi.js';
 
 export interface IStickAreaOptions extends IStickOptions {
     [key: string]: any;

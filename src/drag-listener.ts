@@ -1,5 +1,5 @@
 import { magnitude, sign, unitVector} from './util';
-
+import PIXI from 'pixi.js';
 
 
 /************************/

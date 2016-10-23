@@ -1,6 +1,6 @@
 {
   "name": "pixi-stick",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "author": "",
   "description": "Thumbstick-style touchscreen controls for Pixi.js",
   "repository": {
@@ -8,13 +8,14 @@
     "url": "git+https://github.com/snrogers/pixi-stick.git"
   },
   "main": "build/pixi-stick.js",
+  "jsnext:main": "build/pixi-stick.es2015.js",
   "types": "src/index.ts",
   "scripts": {
-    "prepublish": "rimraf ./build && gulp publish"
+    "prepublish": "rimraf ./build && gulp all"
   },
   "dependencies": {},
   "devDependencies": {
-    "babel-preset-es2015-rollup": "^1.2.0",
+    "babel-preset-es2015": "^6.16.0",
     "chalk": "^1.1.3",
     "gulp": "^3.9.1",
     "gulp-insert": "^0.5.0",
