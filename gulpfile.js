@@ -1,24 +1,25 @@
-var gulp = require('gulp');
-var chalk = require('chalk');
-var rollup = require('rollup');
-var insert = require('gulp-insert');
+const gulp = require('gulp');
+const chalk = require('chalk');
+const rollup = require('rollup');
+const insert = require('gulp-insert');
 
-var fs = require('fs');
-var spawn = require('child_process').spawn;
+const fs = require('fs');
+const spawn = require('child_process').spawn;
 
 
 // Rollup plugins
-var babel = require('rollup-plugin-babel');
-var eslint = require('rollup-plugin-eslint');
-var resolve = require('rollup-plugin-node-resolve');
-var commonjs = require('rollup-plugin-commonjs');
-var typescript = require('rollup-plugin-typescript');
+const babel = require('rollup-plugin-babel');
+const eslint = require('rollup-plugin-eslint');
+const typescript = require('rollup-plugin-typescript');
+// const resolve = require('rollup-plugin-node-resolve');
+// const commonjs = require('rollup-plugin-commonjs');
+
 
 // Config Options
-var publishDest = 'build/pixi-stick.js';
-var devDest = 'docs/dist/pixi-stick.js';
+const publishDest = 'build/pixi-stick.js';
+const devDest = 'docs/dist/pixi-stick.js';
 
-var rollupOptions = {
+const rollupOptions = {
     cache: cache,
     entry: 'src/index.ts',
     external: ['pixi.js'],
@@ -58,6 +59,8 @@ gulp.task('publish', function () {
             });
         })
         .then(function () {
+
+            // Prepend a check for window.PIXI 
             return gulp.src(publishDest)
                 .pipe(insert.prepend(`if (this === window && !window.PIXI){
     throw new Error('PIXI not found! If you are using PixiStick without bundling (i.e. loading pixi-stick.js via <script> tags), ensure that pixi-stick.js is loaded AFTER pixi.js ');
@@ -87,6 +90,8 @@ gulp.task('compile-dev', function (cb) {
                 }
             });
         })
+
+        // Prepend a check for window.PIXI 
         .then(function () {
             return gulp.src(devDest)
                 .pipe(insert.prepend(`if (this === window && !window.PIXI){
@@ -97,7 +102,7 @@ gulp.task('compile-dev', function (cb) {
 });
 
 
-var serverProcess;
+let serverProcess;
 gulp.task('dev', ['compile-dev'], function () {
     if (!serverProcess) {
         console.log('Starting WebServer...');
